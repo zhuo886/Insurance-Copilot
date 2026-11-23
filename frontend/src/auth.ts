@@ -5,9 +5,9 @@ const STORAGE_KEY = 'insurance-mall-auth-v2';
 export const DEFAULT_SESSION: AuthSession = {
   user: {
     id: 1,
-    username: 'heima',
-    email: 'heima@example.com',
-    displayName: '黑马-虎哥',
+    username: 'demo',
+    email: 'demo@example.com',
+    displayName: '演示用户',
   },
 };
 

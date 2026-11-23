@@ -2,9 +2,9 @@ from decimal import Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.product.repository import ProductRepository
 from app.modules.product.models import Product
-from app.modules.product.schemas import ProductResponse
+from app.modules.product.repository import ProductRepository
+
 
 class ProductService:
     def __init__(self, session: AsyncSession):
@@ -14,14 +14,18 @@ class ProductService:
     async def list_products(
         self,
         category: str | None = None,
+        featured_only: bool = True,
     ) -> list[Product]:
-        return await self.repository.find_by_category(category)
+        return await self.repository.find_by_category(
+            category=category,
+            featured_only=featured_only,
+        )
 
     async def list_candidates(
-            self,
-            categories: list[str],
-            premium_min: Decimal | None,
-            limit_per_category: int,
+        self,
+        categories: list[str],
+        premium_min: Decimal | None,
+        limit_per_category: int,
     ) -> list[Product]:
         candidate_products: list[Product] = []
 

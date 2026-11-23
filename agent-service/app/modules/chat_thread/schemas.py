@@ -1,10 +1,9 @@
 from datetime import datetime
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
-from typing import Any, Literal
 
-from pydantic import BaseModel
 
 class ChatThreadCreate(BaseModel):
     """创建会话请求"""
@@ -25,11 +24,13 @@ class ChatThreadResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class ChatMessageResponse(BaseModel):
     """历史消息"""
 
     role: Literal["user", "assistant"]
     content: str
+    additional_info: Any = None
 
 
 class ChatHistoryResponse(BaseModel):
@@ -37,3 +38,4 @@ class ChatHistoryResponse(BaseModel):
 
     thread_id: UUID
     messages: list[ChatMessageResponse]
+    interrupt: dict[str, Any] | None = None

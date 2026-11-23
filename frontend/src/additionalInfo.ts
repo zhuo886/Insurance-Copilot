@@ -9,19 +9,29 @@ export function normalizeAdditionalInfo(raw: unknown): AdditionalInfo[] {
   if (typeof raw !== 'object') return [];
 
   const record = raw as Record<string, unknown>;
+  const results: AdditionalInfo[] = [];
+
   const wrappedSources = record.clause_sources ?? record.sources;
   if (wrappedSources) {
-    return sourceInfo(wrappedSources);
+    results.push(...sourceInfo(wrappedSources));
   }
 
-  const wrappedProducts = record.plan_items ?? record.candidate_products ?? record.candidates_products;
-  if (wrappedProducts) {
-    return productInfo(wrappedProducts, record.plan_items ? '推荐方案产品' : '候选产品');
+  if (record.plan_items) {
+    results.push(...productInfo(record.plan_items, '推荐方案产品'));
+  }
+
+  const wrappedCandidates = record.candidate_products ?? record.candidates_products;
+  if (wrappedCandidates) {
+    results.push(...productInfo(wrappedCandidates, '候选产品'));
   }
 
   const wrappedPolicies = record.policies ?? record.policy_items;
   if (wrappedPolicies) {
-    return policyInfo(wrappedPolicies);
+    results.push(...policyInfo(wrappedPolicies));
+  }
+
+  if (results.length > 0) {
+    return results;
   }
 
   if (looksLikePolicy(record)) {
