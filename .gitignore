@@ -1,0 +1,38 @@
+# 密钥与环境配置（严禁提交真实密钥）
+.env
+.env.*
+!.env.example
+agent-service/.env
+agent-service/.env.*
+!agent-service/.env.example
+deploy/milvus/user.yaml
+
+# 教程草稿与临时笔记本（可能包含本地调试输出）
+agent-service/notebooks/
+
+# Python 虚拟环境与缓存
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# 前端构建产物与依赖
+frontend/node_modules/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+
+# IDE 与系统文件
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# 中间原始解析缓存（保留 .md 结果可按需复用，忽略 .raw.md 原始大缓存）
+agent-service/data/parsed/*.raw.md
