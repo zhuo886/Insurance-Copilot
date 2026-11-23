@@ -1,0 +1,2877 @@
+{
+  "summaries": [
+    {
+      "architecture": "A. 单层 ReAct + Prompt 约束 (Baseline)",
+      "cases": 30,
+      "errors": 0,
+      "compound_completion_rate": 100.0,
+      "pure_qa_mis_followup_rate": 0.0,
+      "valid_citation_precision": 0.0,
+      "zero_hallucination_ref_rate": 93.33,
+      "hard_constraint_compliance_rate": 20.0,
+      "faithfulness": 84.54,
+      "faithfulness_samples": 26,
+      "avg_latency_ms": 12796.92,
+      "avg_tokens": 11984.7,
+      "guardrail_retry_cases": 0
+    },
+    {
+      "architecture": "B1. 纯刚性状态机路由 (Workflow-only)",
+      "cases": 30,
+      "errors": 0,
+      "compound_completion_rate": 0.0,
+      "pure_qa_mis_followup_rate": 0.0,
+      "valid_citation_precision": 0.0,
+      "zero_hallucination_ref_rate": 93.33,
+      "hard_constraint_compliance_rate": 40.0,
+      "faithfulness": 81.54,
+      "faithfulness_samples": 13,
+      "avg_latency_ms": 12037.07,
+      "avg_tokens": 21150.5,
+      "guardrail_retry_cases": 0
+    },
+    {
+      "architecture": "B2. 混合子图 + 全量 LLM-Critic 反思",
+      "cases": 30,
+      "errors": 0,
+      "compound_completion_rate": 100.0,
+      "pure_qa_mis_followup_rate": 0.0,
+      "valid_citation_precision": 92.0,
+      "zero_hallucination_ref_rate": 93.33,
+      "hard_constraint_compliance_rate": 80.0,
+      "faithfulness": 79.32,
+      "faithfulness_samples": 25,
+      "avg_latency_ms": 27711.69,
+      "avg_tokens": 16481.7,
+      "guardrail_retry_cases": 24
+    },
+    {
+      "architecture": "C. 混合子图 + 确定性护栏按需单次纠偏 (最终方案)",
+      "cases": 30,
+      "errors": 0,
+      "compound_completion_rate": 100.0,
+      "pure_qa_mis_followup_rate": 10.0,
+      "valid_citation_precision": 100.0,
+      "zero_hallucination_ref_rate": 100.0,
+      "hard_constraint_compliance_rate": 100.0,
+      "faithfulness": 87.61,
+      "faithfulness_samples": 23,
+      "avg_latency_ms": 13051.28,
+      "avg_tokens": 12729.2,
+      "guardrail_retry_cases": 8
+    }
+  ],
+  "details": {
+    "A": [
+      {
+        "case_id": "A01",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 8788.65,
+        "total_tokens": 6504,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "## 达尔文12号（复星联合优选K重疾险）生效与等待期说明\n\n**📅 何时生效**\n- 投保人提出投保申请、保险公司同意承保，合同即成立；自**公司同意承保、收取首期保险费并签发保险单后开始生效**，具体生效日以**保险单载明的日期**为准。\n- 另有 **15 天犹豫期**：自签收保单或收到电子保单之日（以较早者算）起，期内退保可无息退还已交保费。\n\n**⏳ 疾病等待期：180 天**\n- 等待期为合同生效日（或效力中止后最后复效日，以较迟者为准）起 **180 日**。\n- 等待期内的处理规则：\n  - **重疾**：因非意外原因确诊合同约定的重大疾"
+      },
+      {
+        "case_id": "A02",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 65.0,
+        "latency_ms": 19158.34,
+        "total_tokens": 12235,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "根据复星联合星相守2号个人版（产品ID=4）的条款，回答如下：\n\n## 一、保证续保年限：**20年**\n\n条款「2.3 续保和保证续保」明确约定：\n\n- 本产品为**费率可调的保证续保型**长期医疗保险合同，**保证续保期间为20年**，自首次投保合同生效日零时起算；\n- 保证续保期间内，即使产品停售、理赔过或健康状况变化，保险公司不能因此拒绝续保（但费率可能按条款「4.3」统一调整，且不会因个人身体状况差别化调价）；\n- 仅在以下情况合同终止：未如实告知、主动退保、未按时交费、或保证续保期内累计赔付达到总赔付限额；\n- 20年期满后若产品仍在售，需重"
+      },
+      {
+        "case_id": "A03",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006",
+          "ref-007",
+          "ref-008",
+          "ref-009"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 65.0,
+        "latency_ms": 30232.23,
+        "total_tokens": 63271,
+        "llm_calls": 7,
+        "error": null,
+        "answer_preview": "已核对众安尊享e生百万医疗险2026版（产品ID=6）的条款原文，结论如下 👇\n\n## 一、免赔额（起付线）\n- **条款约定方式**：第七条（三）明确\"免赔额由投保人与保险人在订立本合同时协商确定，并在本合同中载明\"——即**以保单载明的数字为准**，不是固定值。条款举例说明用的是 **1万元**（该产品的标准/常见计划即为一般医疗 1 万元免赔额）。\n- **抵扣规则（重要）**：只有两种金额可以冲抵免赔额：\n  1. 被保险人自行承担的责任内医疗费（含医保**个人账户**支出）；\n  2. 从基本医保/公费医疗**以外**的其他途径获得的责任内补偿"
+      },
+      {
+        "case_id": "A04",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 85.0,
+        "latency_ms": 12434.15,
+        "total_tokens": 5909,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "根据查询到的条款内容，我可以明确回答用户的问题。关键信息在 ref-001 中：\n\n第五条 被保险人职业变更明确规定：\n1. 被保险人变更职业时，投保人或被保险人应于15日内以书面形式通知保险人。\n2. 危险程度降低：退还现金价值差额\n3. 危险程度增加：增收现金价值差额\n4. 若变更后职业在拒保范围内：合同终止，退还现金价值；且保险人不承担给付保险金责任\n\n所以答案是：需要通知保险公司，且有明确的时限要求（15日内书面通知）。\n根据《太平洋小蜜蜂6号综合意外险》条款**第一部分 基本条款 第五条「被保险人职业变更」**的规定：\n\n## ✅ 必须通知保险"
+      },
+      {
+        "case_id": "A05",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006",
+          "ref-007"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 16234.63,
+        "total_tokens": 16969,
+        "llm_calls": 4,
+        "error": null,
+        "answer_preview": "先说明一个查询发现：产品库中 ID=1 对应的条款文件名为「信美相互星辰守护B款少儿重疾险」（承保公司为信美人寿相互保险社），与您提到的\"达尔文宝贝计划12号\"名称不完全一致，可能您记的是营销名或另一款（达尔文系列成人重疾在库内是 ID=2 复星联合优选K/达尔文12号）。以下回答基于 ID=1 的实际条款原文。\n\n## 一、犹豫期与全额退保（条款 6.1）\n\n- **犹豫期 = 签收合同之日起 15 日内**。\n- 在这 15 天内申请解除合同，保险公司**无息退还您所交的全部保险费**，即可以\"全额退保\"。\n- 办理需提交：解除合同申请书 + 本人有"
+      },
+      {
+        "case_id": "A06",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 6501.7,
+        "total_tokens": 5272,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "**宽限期为 60 天。**\n\n依据《太保福有余（2025）终身寿险（分红型）条款》第 5.2 条「宽限期」：\n\n- 分期支付保险费的，在支付首期保费后，若到期未支付，**自保险费约定支付日的次日零时起 60 日为宽限期**。\n- 宽限期内发生保险事故，保险公司仍承担保险责任，但给付保险金时会**扣减您欠交的保险费**。\n- 若宽限期届满仍未缴费、且未选择「保险费自动垫交」，合同自**宽限期满次日零时起效力中止**。\n\n补充两点提示：\n\n1. **自动垫交（第 6.3 条）**：若投保时选择了保费垫交，超过宽限期仍未缴的，可用现金价值扣除欠款后的余额垫交"
+      },
+      {
+        "case_id": "A07",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 98.0,
+        "latency_ms": 7514.8,
+        "total_tokens": 5689,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "新华人寿E增福优享版终身寿险（互联网）的“取钱”主要通过**减保（部分退保）**实现，条款规定如下：\n\n## 减保规则（利益条款第十四条）\n\n1. **申请时点**：合同保险期间内均可提出减保申请，但需**经保险公司审核同意**（即非无条件自由支取）。\n\n2. **领取金额**：基本保险金额同比例减少，公司**退还减少部分对应的现金价值**；若在犹豫期内减保，则退还减少部分对应的保险费。\n\n3. **频率/额度限制（关键）**：**每个保单年度累计减保的基本保险金额之和，不得超过合同生效时基本保险金额的 20%**。也就是说，每年最多只能\"取\"约两成的额"
+      },
+      {
+        "case_id": "A08",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 8776.19,
+        "total_tokens": 5117,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "根据《复星联合医联有盟重大疾病保险（互联网）条款》第 3.3.2 条\"一般医疗保险金申请\"的规定，申请一般医疗保险金时须提交以下证明和资料：\n\n**必备材料清单**\n\n1. **受益人有效身份证件**\n2. **医疗及费用证明材料**（由指定医疗机构出具）：\n   - 被保险人诊断证明\n   - 病历\n   - 出院小结或出院病历（需加盖医院病历专用章）\n   - 医疗费用发票及明细\n   - *特别说明*：若发生的是健康检查费用，则仅需提供指定医疗机构出具的被保险人医疗费用发票即可\n3. **其他材料**：所能提供的与确认保险事故的性质、原因等有关的其"
+      },
+      {
+        "case_id": "A09",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 45.0,
+        "latency_ms": 16918.66,
+        "total_tokens": 21822,
+        "llm_calls": 4,
+        "error": null,
+        "answer_preview": "## 星相守2号（ID=4） vs 众安尊享e生2026版（ID=6）：续保条款对比\n\n### 一、核心结论\n| 维度 | 星相守2号个人版（复星联合优选二号长期住院医疗险） | 众安尊享e生2026版 |\n|---|---|---|\n| **合同性质** | **保证续保型**（费率可调） | **不保证续保型** |\n| **保证期间** | **20 年**，自首次投保生效日零时起算 | 无，保险期间仅 1 年（或不超过 1 年） |\n| **停售影响** | 20 年内停售不影响当期保障；仅在期间届满时若已停售则不再接受续保 | **停售即终止*"
+      },
+      {
+        "case_id": "A10",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 25.0,
+        "latency_ms": 17074.33,
+        "total_tokens": 8379,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "根据条款原文，两款重疾险在等待期和责任免除上的对比如下：\n\n## 一、等待期对比\n\n| 项目 | 达尔文12号（ID=2） | 复星联合医联有盟（ID=3） |\n|---|---|---|\n| **等待期长度** | **180天** | **90天** ✅ 更短 |\n| 等待期内确诊重疾 | 不赔，无息退还已交保费，合同终止 | 不赔，无息退还已交保费（若已给付过一般医疗保险金需扣除相应金额），合同终止 |\n| 等待期内确诊中/轻症 | 该种中/轻症及其关爱金、豁免责任终止，**合同继续有效** | 该种轻/中症保险金责任终止，合同继续有效 |\n| 等"
+      },
+      {
+        "case_id": "C01",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 15200.58,
+        "total_tokens": 24687,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "两项都查好了，下面分别汇报。\n\n---\n\n## 一、30岁男性 · 重疾+医疗组合推荐（预算3500元/年）\n\n漏斗筛选结果：**在预算内**，覆盖险种齐全（医疗+重疾），推荐组合如下：\n\n| 角色 | 产品 | 承保公司 | 预估年保费 | 亮点 |\n|---|---|---|---|---|\n| 医疗险 | 21 大地惠民百万医疗险（基础普惠版） | 中国大地保险 | **344.15元** | 高性价比、低保费、百万保额 |\n| 重疾险 | 26 海保人寿哪吒2号定期重疾险（保至70岁） | 海保人寿 | **1268.66元**（按50万保额试算"
+      },
+      {
+        "case_id": "C02",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 21192.4,
+        "total_tokens": 11689,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "## 一、达尔文12号（复星联合优选K重疾险）条款查询结果\n\n**⏳ 等待期：180 天**\n- 自合同生效日（或效力中止后最后复效日，以较迟者为准）起 **180 日**为等待期；\n- 等待期内因**非意外**原因确诊重大疾病 → 不承担责任，**无息退还已交保费**，合同终止；\n- 等待期内因非意外原因确诊中度/轻度疾病 → 不给付该种中/轻症保险金及首次关爱金，也不豁免保费，但**合同继续有效**；\n- 等待期内因非意外导致身故或全残 → 无息退还已交保费，合同终止；\n- **因意外导致的保险事故无等待期**。\n\n**💰 宽限期：60 天**\n- "
+      },
+      {
+        "case_id": "C03",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 9008.44,
+        "total_tokens": 10304,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "您好！已为您完成保费试算并核实条款，结果如下：\n\n## 一、保费试算结果（众安尊享e生百万医疗险2026版，产品ID=6）\n\n| 投保条件 | 内容 |\n|---|---|\n| 被保人 | 32岁男性 |\n| 社保情况 | 有社保 |\n| 计划 | standard（标准版） |\n| **年缴保费** | **约 600 元/年** |\n\n> 数据来源：费率表精确试算（按年龄段计划保费），试算记录号 fd0df694。实际保费以投保核保结论为准。\n\n## 二、条款关键结论：**不保证续保** ⚠️\n\n根据《众安在线财产保险股份有限公司个人医疗保险条款（互"
+      },
+      {
+        "case_id": "C04",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 10907.14,
+        "total_tokens": 6326,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "两项查询都已完成，下面为您汇总结果：\n\n---\n\n## 一、5岁女宝宝推荐组合（预算 ¥2000）\n\n### ✅ 推荐方案（预估合计约 ¥935/年，远在预算内）\n\n| 产品 | 险种 | 保司 | 预估年保费 | 核心亮点 |\n|---|---|---|---|---|\n| **复星联合超越保（少儿住院门急诊0免赔）** [ID=18] | 医疗险 | 复星联合健康 | ≈ ¥356 | 少儿医疗、**0免赔**、含门急诊 |\n| **达尔文宝贝计划12号** [ID=1] | 少儿重疾险 | 信美人寿相互保险社 | ≈ ¥580 | 117种重疾、少"
+      },
+      {
+        "case_id": "C05",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 65.0,
+        "latency_ms": 10988.44,
+        "total_tokens": 10978,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "## 一、条款查询结果：众安尊享e生2026版（ID=6）无医保赔付比例\n\n根据《众安在线个人医疗保险条款（互联网2025版）》第二部分第七条，与您问题直接相关的约定如下：\n\n1. **给付比例单独约定**（第七条第四款）：若被保险人**以参加基本医疗保险身份投保但未获得医保补偿**的，按合同**单独约定的给付比例**赔付（该比例通常在产品页/保单特别约定中载明，常见为60%，建议以投保页面为准）。\n2. **无医保身份投保**（第七条第二款）：**不具备**基本医保、公费医疗或其他费用补偿型医疗保险、且未从其他途径获得补偿的被保险人，其合理医疗费用**"
+      },
+      {
+        "case_id": "C06",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 9805.78,
+        "total_tokens": 10656,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "## 一、6类高空作业可承保方案推荐（预算2500元）\n\n经过「召回→承保硬过滤→精排→组合优化」漏斗筛选，**多数常规百万医疗和意外险会拒保6类职业**，最终为您选出以下可承保组合：\n\n### ✅ 首选组合（合计约 1,078.76 元/年，远低于预算）\n\n| 产品 | 险种 | 预估年保费 | 核心亮点 |\n|---|---|---|---|\n| **德华安顾高危职业百万医疗险**（ID 20） | 医疗险 | 约 712.47 元 | 5-6类职业可保、百万医疗、外购药保障 |\n| **亚太麒麟保1-6类蓝领意外险**（ID 37） | 意外险 |"
+      },
+      {
+        "case_id": "C07",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 7129.31,
+        "total_tokens": 6035,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "已为您完成保费试算和条款查询，结果如下：\n\n## 💰 保费试算结果\n\n**太平洋小蜜蜂6号综合意外险**（产品ID=10）\n\n| 投保信息 | 内容 |\n|---|---|\n| 被保人 | 26岁 / 男 / 1类职业 / 有社保 |\n| 计划 | standard（标准版） |\n| **年缴保费** | **136.00 元** |\n\n> 定价方式：费率表精确取数（fixed_plan_premium），非估算。试算记录编号：d0d26cdd-22b7-4b3e-a495-45ed24a2f5fb\n\n## 📋 条款理赔资料要求\n\n### 一、残疾保险金"
+      },
+      {
+        "case_id": "C08",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 14813.47,
+        "total_tokens": 6179,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "已为您完成组合推荐和条款查询，结果如下：\n\n## 一、10岁少儿「意外+重疾」组合推荐（预算 1500 元）\n\n**✅ 推荐组合，预估总保费约 1408 元，在预算内：**\n\n| 产品 | 险种 | 承保公司 | 预估年保费 | 核心亮点 |\n|---|---|---|---|---|\n| 达尔文宝贝计划12号（ID=1） | 重疾险 | 信美人寿相互保险社 | 约 1281 元 | 117种重疾、少儿保障、可选投保人豁免 |\n| 平安小神童5号少儿综合意外险（ID=38） | 意外险 | 平安产险 | 约 127 元 | 少儿意外、0免赔不限社保、含监"
+      },
+      {
+        "case_id": "C09",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 65.0,
+        "latency_ms": 27498.37,
+        "total_tokens": 19159,
+        "llm_calls": 4,
+        "error": null,
+        "answer_preview": "试算完成，42岁女性100万保额定寿约2926元/年，加上医疗险合计约3526元，仍在4500预算内。以下是完整结果：\n\n## 一、组合推荐（42岁女性 · 有医保 · 预算4500元/年）\n\n| 角色 | 产品 | 预估年保费 | 说明 |\n|---|---|---|---|\n| 长期医疗险 | 众安尊享e生百万医疗险2026版（ID=6） | **600元**（费率表精确报价，1万免赔） | 综合评分0.654，预算效率0.97 |\n| 定期寿险 | 国富人寿定海柱6号（ID=47） | **约2926元**（100万保额，公式估算价） | 综合评分"
+      },
+      {
+        "case_id": "C10",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 13491.67,
+        "total_tokens": 6007,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "### 一、保费试算结果\n\n| 项目 | 内容 |\n|---|---|\n| **产品名称** | 复星联合医联有盟重疾险（产品ID：3） |\n| **被保人条件** | 33岁男性，有医保，1类职业 |\n| **年缴保费（估算）** | **约 3,764.63 元/年** |\n| 适配因子说明 | 性别系数 1.06、社保系数 1.0、职业系数 1.0、免赔额/保额系数 1.0 |\n\n> 该保费为基于费率公式的**精算估算值**（pricing_mode: estimated_formula），实际投保保费以核保结论为准。\n\n---\n\n### 二、责任"
+      },
+      {
+        "case_id": "R01",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": {
+          "plan_name": "62岁父亲中老年保障替代方案（原达尔文12号超龄不可投）",
+          "summary": "原计划为62岁父亲投保达尔文12号重疾险（预估2000元/年），经费率试算核实该产品适用年龄为0-35岁，父亲已超龄无法承保。本替代方案改由三款高龄可保产品组成：中老年百万医疗（免健告）+ 特定防癌重疾 + 高龄意外险，合计预估年保费约4695元，覆盖医疗、重疾、意外三大核心风险。",
+          "annual_premium_budget": 4695.0,
+          "items": [
+            {
+              "product_id": 16,
+              "name": "众安众民保中老年普惠百万医疗（免健告）",
+              "category": "medical",
+              "image_url": null,
+              "description": "无需健康告知，三高/糖尿病等既往症人群与高龄父母均可投保，最高80周岁。",
+              "highlights": [
+                "免健康告知",
+                "80岁可保",
+                "三高可保"
+              ],
+              "priority": 1,
+              "recommendation_reason": "80岁可保、免健康告知，三高人群也可投保，弥补62岁无法投保达尔文12号的医疗保障缺口",
+              "annual_premium_budget": 1817.0
+            },
+            {
+              "product_id": 32,
+              "name": "阳光人寿中老年特定防癌重疾险",
+              "category": "critical_illness",
+              "image_url": null,
+              "description": "专为50-70岁中老年设计，只保恶性肿瘤，三高人群可投，解决老年重疾买不到难题。",
+              "highlights": [
+                "70岁可保",
+                "防癌重疾",
+                "三高可保"
+              ],
+              "priority": 2,
+              "recommendation_reason": "70岁前可保的重疾替代方案，专注高发癌症保障，三高可保，符合父亲年龄段的可承保条件",
+              "annual_premium_budget": 2593.0
+            },
+            {
+              "product_id": 35,
+              "name": "人保大护甲6号高龄版意外险",
+              "category": "accident",
+              "image_url": null,
+              "description": "50-85岁父母意外专属，含救护车费用、骨折津贴及住院护理津贴。",
+              "highlights": [
+                "高龄意外",
+                "救护车补贴",
+                "骨折津贴"
+              ],
+              "priority": 3,
+              "recommendation_reason": "专为高龄设计，含救护车补贴与骨折津贴，老年人意外高发场景覆盖全面，保费低杠杆高",
+              "annual_premium_budget": 285.0
+            }
+          ]
+        },
+        "guardrail_retry_count": 0,
+        "faithfulness": 50.0,
+        "latency_ms": 17501.8,
+        "total_tokens": 35736,
+        "llm_calls": 6,
+        "error": null,
+        "answer_preview": "✅ **方案草稿已提交保存成功！**\n\n不过需要如实向您说明一个重要情况：\n\n### ⚠️ 关于达尔文12号\n我按您的要求先做了费率试算核实，结果显示：**该产品适用投保年龄为 0-35 岁（1-4类职业）**，您父亲 62 岁已超龄，**无法承保**。若原样提交，只会在核保环节被拒，因此我没有机械地照搬原需求。\n\n### 📋 已提交的替代方案：「62岁父亲中老年保障替代方案」\n\n| 产品 | 险种 | 预估年保费 | 推荐理由 |\n|---|---|---|---|\n| 众安众民保中老年普惠百万医疗 | 医疗 | ¥1,817 | 免健康告知、80岁可"
+      },
+      {
+        "case_id": "R02",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 5311.36,
+        "total_tokens": 4620,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "根据查询结果，我需要向您说明一个重要情况：\n\n**海保人寿哪吒2号定期重疾险（product_id=26）的承保年龄为18-45周岁**，您作为58岁的长辈已超出该产品的最高投保年龄限制，因此这款产品无法为您承保。如果我强行提交这个方案草稿，它将在后续核保环节被直接拒绝，对您没有任何实际意义。\n\n不过别担心，我可以帮您重新寻找适合58岁人群、预算3000元以内的重疾或健康保障方案。让我先为您搜索一下符合条件的产品推荐："
+      },
+      {
+        "case_id": "R03",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": {
+          "plan_name": "3岁宝宝复星联合医联有盟重疾险配置方案",
+          "summary": "为3岁宝宝配置复星联合医联有盟重疾险，年保费预算3200元。",
+          "annual_premium_budget": 3200.0,
+          "items": [
+            {
+              "product_id": 3,
+              "name": "复星联合医联有盟重疾险",
+              "category": "critical_illness",
+              "image_url": "https://files.huizecdn.com/file3/M00/95/DE/rBYA3GjL0m-AN888AAEX8uDe8d4708.png",
+              "description": "重疾保障产品，含主险及长期医疗附加保障。",
+              "highlights": [
+                "重疾保障",
+                "可附加医疗"
+              ],
+              "priority": 1,
+              "recommendation_reason": "用户指定产品：复星联合医联有盟重疾险",
+              "annual_premium_budget": 3200.0
+            }
+          ]
+        },
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 4007.48,
+        "total_tokens": 4590,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "方案草稿已成功提交 ✅\n\n**《3岁宝宝复星联合医联有盟重疾险配置方案》**\n- 产品：复星联合医联有盟重疾险（product_id=3）\n- 预估年保费：3200元\n\n该草稿已进入确认审批流，如需正式投保或有其他调整需求，随时告诉我。"
+      },
+      {
+        "case_id": "R04",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": {
+          "plan_name": "32岁6类高空作业工人意外险方案",
+          "summary": "用户为32岁6类高空作业工人，年预算1000元，推荐太平洋小蜜蜂6号综合意外险（保费298元）作为核心保障。",
+          "annual_premium_budget": 1000.0,
+          "items": [
+            {
+              "product_id": 10,
+              "name": "太平洋小蜜蜂6号综合意外险",
+              "category": "accident",
+              "image_url": "https://files.huizecdn.com/file3/M00/97/98/rBYA3GjUtNOASrCtAAP85DM8wvE838.png",
+              "description": "综合意外险，含意外伤害及可选附加医疗、猝死责任。",
+              "highlights": [
+                "综合意外",
+                "意外医疗",
+                "猝死附加"
+              ],
+              "priority": 1,
+              "recommendation_reason": "太平洋小蜜蜂6号综合意外险，适合32岁6类高空作业工人投保",
+              "annual_premium_budget": 298.0
+            }
+          ]
+        },
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 8423.47,
+        "total_tokens": 4907,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "方案草稿已成功提交！以下是为您整理的方案详情：\n\n---\n\n## 📋 32岁6类高空作业工人意外险方案\n\n| 项目 | 内容 |\n|------|------|\n| **方案名称** | 32岁6类高空作业工人意外险方案 |\n| **年预算** | 1,000 元 |\n| **被保人信息** | 32岁 · 6类职业（高空作业） |\n\n### 推荐产品\n\n| 优先级 | 产品名称 | 险种类别 | 预估年保费 |\n|--------|----------|----------|------------|\n| ⭐ 1 | **太平洋小蜜蜂6号综合意外险**"
+      },
+      {
+        "case_id": "R05",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": {
+          "plan_name": "36岁建筑施工人员综合意外保障方案",
+          "summary": "针对36岁5类职业建筑施工人员的职业风险特点，配置人保大护甲6号旗舰版综合意外险，年保费150元，提供基础意外保障。",
+          "annual_premium_budget": 150.0,
+          "items": [
+            {
+              "product_id": 33,
+              "name": "人保大护甲6号旗舰版综合意外险",
+              "category": "accident",
+              "image_url": null,
+              "description": "最高150万意外身故/伤残，含50万猝死、意外住院津贴及骨折脱臼津贴，不限社保0免赔。",
+              "highlights": [
+                "0免赔不限社保",
+                "高额猝死",
+                "骨折津贴"
+              ],
+              "priority": 1,
+              "recommendation_reason": "人保大护甲6号旗舰版综合意外险，保费150元/年",
+              "annual_premium_budget": 150.0
+            }
+          ]
+        },
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 9178.05,
+        "total_tokens": 4841,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "方案已成功提交保存！以下是您的「36岁建筑施工人员综合意外保障方案」摘要：\n\n---\n\n### 📋 方案概览\n| 项目 | 内容 |\n|------|------|\n| **产品名称** | 人保大护甲6号旗舰版综合意外险（product_id=33） |\n| **险种** | 意外险 |\n| **预估年保费** | 150元/年 |\n| **优先级** | 1（核心配置） |\n\n### 🛡️ 保障亮点\n- ✅ **最高150万** 意外身故/伤残保额\n- ✅ **含50万猝死保障**（对建筑施工人员尤为重要）\n- ✅ **不限社保、0免赔**（自费药也"
+      },
+      {
+        "case_id": "R06",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": {
+          "plan_name": "30岁·达尔文12号+星相守2号个人版组合方案（超预算待确认）",
+          "summary": "按用户明确要求，将达尔文12号重大疾病保险与复星联合星相守2号长期医疗险（个人版）共同纳入方案。需要提示：系统按30岁/1类职业/有医保实际试算，达尔文12号标准计划（50万保额）年保费约4300元、星相守2号个人版约1387元，两款合计约5687元/年，远超用户800元/年的预算（用户提供的1800元+500元=2300元亦已超预算）。本方案作为\"用户坚持配置、预算缺口待确认\"的草稿提交，建议后续通过降低重疾保额、调整缴费期或提高预算来弥合缺口；若需控制在800元内，可改用大地惠民百万医疗险（基础普惠版，约344元/年）等替代组合。",
+          "annual_premium_budget": 5687.39,
+          "items": [
+            {
+              "product_id": 2,
+              "name": "达尔文12号重大疾病保险",
+              "category": "critical_illness",
+              "image_url": "https://files.huizecdn.com/file3/M00/90/E5/rBYA3Gi1BnWALIBtAAYFAsRjzwk030.png",
+              "description": "120种重疾+30种中症+45种轻症，可选多项责任。",
+              "highlights": [
+                "120种重疾",
+                "中轻症保障",
+                "可选责任丰富"
+              ],
+              "priority": 1,
+              "recommendation_reason": "用户指定必选产品：30岁人群重疾险核心保障，覆盖重大疾病风险；但系统试算50万保额标准计划年保费约4300元，高于用户预期的1800元，需下调保额或确认缴费能力。",
+              "annual_premium_budget": 4300.0
+            },
+            {
+              "product_id": 4,
+              "name": "复星联合星相守2号长期医疗险（个人版）",
+              "category": "medical",
+              "image_url": "https://files.huizecdn.com/file3/M00/AC/B9/rBYA3GlFEUWAWcX8AAO1o6m75Qg526.png",
+              "description": "免赔额灵活可选，保证续保20年特需，外购药不限清单。",
+              "highlights": [
+                "长期医疗",
+                "门急诊可选",
+                "家庭保障"
+              ],
+              "priority": 2,
+              "recommendation_reason": "用户指定必选产品：长期医疗险，保证续保、补充医保外住院及特药保障；系统试算年保费约1387元，高于用户预期的500元。",
+              "annual_premium_budget": 1387.39
+            }
+          ]
+        },
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 13079.06,
+        "total_tokens": 11153,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "✅ 方案草稿已按您的要求提交保存，但必须先如实向您提示预算差异：\n\n## 📋 已保存方案：「30岁·达尔文12号+星相守2号个人版组合方案（超预算待确认）」\n\n| 产品 | 险种 | 系统实际试算年保费 | 您提供的保费 |\n|---|---|---|---|\n| 达尔文12号重大疾病保险（50万保额，标准计划） | 重疾 | **约 4,300 元** | 1,800 元 |\n| 复星联合星相守2号长期医疗险（个人版） | 医疗 | **约 1,387 元** | 500 元 |\n| **合计** | | **约 5,687 元/年** | 2,300"
+      },
+      {
+        "case_id": "R07",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 16745.54,
+        "total_tokens": 7642,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "好的，查询结果已返回。让我为您梳理：\n\n---\n\n## 📋 您指定的两款产品条款要点\n\n| 产品 | 类型 | 核心保障 | 关键限制 |\n|------|------|----------|----------|\n| **太保福有余2025**（ID=8） | 终身寿险（分红型） | 身故/全残保险金，40岁及以下赔付比例160%已缴保费 | 90天等待期；保险期间为终身 |\n| **复星联合医联有盟**（ID=3） | 重疾险（互联网） | 120种重疾+重疾豁免保费+一般医疗保险金（前5年每年保额×0.5%，可累积） | 一般医疗总限额仅为基本保额"
+      },
+      {
+        "case_id": "R08",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-099"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 11008.8,
+        "total_tokens": 6417,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "## 众安尊享e生百万医疗险2026版（产品ID=6）——起付线/免赔额条款\n\n根据条款原文，该产品免赔额相关规定如下：\n\n**1. 免赔额定义（第二部分·第七条第（三）款）**\n- 免赔额指保险期间内属于保险责任范围内、但按约定需由被保险人自行承担、保险人不予赔付的金额；只有当免赔额被抵扣完毕后，保险人才开始按约定承担赔付责任。\n- **可用于抵扣免赔额**的包括：①被保险人自行承担的责任范围内医疗费用（含医保个人账户支出部分）；②从基本医保、公费医疗之外的其他途径获得的责任范围内费用补偿。\n- **不可用于抵扣免赔额**：通过基本医疗保险统筹账户、公"
+      },
+      {
+        "case_id": "R09",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-088"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 85.0,
+        "latency_ms": 9874.89,
+        "total_tokens": 7777,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "根据查询结果，星相守2号个人版（产品ID=4）的住院期间外购药报销条款如下：\n\n## 核心条款要点 [ref-088]\n\n**1. 适用前提条件**\n外购药品/医疗器械需同时满足以下5个条件才能赔付：\n- ✅ 由保险公司指定或认可的医疗机构专科医生开具处方\n- ✅ 处方药品为当前治疗医学必需\n- ✅ 每次处方剂量不超过1个月\n- ✅ 必须在保险公司认可的药店购买\n- ✅ 药品需符合国家药监局批准的说明书适应症，且具有合法批准文号/注册证书\n\n**2. 责任归属与赔付限额**\n外购药费用在\"一般住院医疗保险金\"、\"轻中症疾病住院医疗保险金\"、\"重大疾病住院"
+      },
+      {
+        "case_id": "R10",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 5107.84,
+        "total_tokens": 8672,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "达尔文12号的等待期是180天（从合同生效或最后一次复效那天算起），期间因疾病确诊重疾、身故或全残，保险公司不赔但会无息退还已交保费、合同终止。如果是意外导致的事故则完全没有等待期限制，可以直接理赔。"
+      }
+    ],
+    "B1": [
+      {
+        "case_id": "A01",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 4936.24,
+        "total_tokens": 2272,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "根据达尔文12号重大疾病保险（复星联合优选K重疾险）条款，为您解答如下：\n\n**1. 合同生效时间：**\n本合同自保险公司同意承保、收取首期保险费并签发保险单后开始生效。具体的生效日以保险单所载的日期为准。\n\n**2. 等待期时长：**\n*   **一般情况：** 等待期为 **180天**。起算日为合同生效日或合同效力中止后的最后复效日（以较迟者为准）。\n*   **意外无等待期：** 若被保险人因“意外”原因导致发生保险事故，则不受等待期限制。\n\n**3. 等待期内出险的处理方式：**\n*   **确诊重大疾病或身故/全残：** 若在等待期内因非意外"
+      },
+      {
+        "case_id": "A02",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 65.0,
+        "latency_ms": 12842.33,
+        "total_tokens": 11210,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "## 一、保证续保期限：**20年**\n\n依据条款 2.3「续保和保证续保」：本产品为**费率可调的保证续保型**医疗保险，保证续保期间 **20 年**，自首次投保合同生效日零时起算。\n\n- 保证续保期内，除以下情形外公司不得终止合同：未如实告知、投保人主动退保、未按期足额交费、累计赔付达到保证续保期间总限额。\n- 20 年届满时：若产品仍在售，需重新申请投保并经审核同意，进入下一个保证续保期间（新合同保险期间为 1 年）。若产品已停售、被保险人已满 99 周岁、未通过续保审核或合同已解除，则不再接受续保。\n\n## 二、院外自费靶向药：**能报，但有严"
+      },
+      {
+        "case_id": "A03",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006",
+          "ref-007",
+          "ref-008",
+          "ref-009",
+          "ref-010"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 45.0,
+        "latency_ms": 63870.06,
+        "total_tokens": 455761,
+        "llm_calls": 17,
+        "error": null,
+        "answer_preview": "已完成对《众安尊享e生百万医疗险2026版》条款（产品ID=6）的检索，以下是条款原文依据的回答。\n\n## 一、先要区分两种\"没有社保\"的情形\n\n### 情形1：投保时就以\"无社保（未参加基本医保/公费医疗）\"身份投保\n条款第七条（二）明确：\n> \"不具备基本医疗保险、公费医疗、其他费用补偿型医疗保险等、未从其他途径获得医疗费用补偿的被保险人，保险人对上述第六条保险责任中的医疗费用**按照本合同的约定进行赔付**。\"\n\n即：**不存在\"因无社保而降比例\"的条款规定**，直接按保单约定的给付比例赔（该产品的标准约定为100%）。但无社保身份的**保费更高*"
+      },
+      {
+        "case_id": "A04",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 13514.42,
+        "total_tokens": 2745,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "**结论：需要通知，而且有明确时限要求。**\n\n根据太平洋小蜜蜂6号综合意外险条款（第一部分基本条款·第五条 被保险人职业变更）的规定：\n\n## 一、告知义务与时限\n- 被保险人**变更职业时，投保人或被保险人应于 15 日内以书面形式通知保险公司**。所以换工作转行属于职业变更，必须主动告知。\n- 保险公司依据其事先公布的《职业分类表》确定职业类别和承保范围，具体以保险单载明的职业类别为准。新职业的危险等级可拨打服务热线或到服务网点查询。\n\n## 二、不同情形下的处理结果\n| 变更后职业情况 | 处理方式 |\n|---|---|\n| 危险程度**降低*"
+      },
+      {
+        "case_id": "A05",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 9977.2,
+        "total_tokens": 2712,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "**达尔文宝贝计划12号（产品ID=1）条款要点回答：**\n\n## 一、犹豫期与全额退保\n- **犹豫期为 15 天**：自您签收合同之日起 15 日内为犹豫期。\n- **犹豫期内退保可全额退还保费**：在此期间提出解除合同的，保险公司**无息退还已交保险费**（相当于全额退保）。\n  - 办理需提交：解除合同申请书 + 投保人有效身份证件 + 交费发票。\n  - 注意：合同解除后发生的保险事故不再承担保险责任。\n- **犹豫期后退保会有损失**：只退\"现金价值\"（收到申请起 30 日内给付），通常低于已交保费。\n\n## 二、责任免除（不赔的情况）\n**"
+      },
+      {
+        "case_id": "A06",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 5742.83,
+        "total_tokens": 2178,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "**宽限期为 60 天。**\n\n依据《太保福有余（2025）终身寿险（分红型）条款》第 5.2 条：\n\n- 除另有约定外，分期支付保险费的，自保险费约定支付日**次日零时起 60 日**为宽限期。\n- **宽限期内出险**：保险公司仍承担保险责任，但给付保险金时会扣减您欠交的保险费。\n- **宽限期结束仍未缴费**且未选择保险费自动垫交的，合同自宽限期满的次日零时起**效力中止**。\n\n补充提示：若投保时选择了\"保险费自动垫交\"，超过宽限期未缴费时可用现金价值余额垫交，合同继续有效；中止期间不承担保险责任、不参与红利分配，满 2 年未达成复效协议的，保险"
+      },
+      {
+        "case_id": "A07",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 11039.77,
+        "total_tokens": 2565,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "根据新华人寿E增福优享版终身寿险（互联网）条款**第十四条 减保**的规定，关于\"取钱/减保\"的规则如下：\n\n## 一、减保基本规则\n1. **申请资格**：在保险合同保险期间内，投保人可以申请减保。\n2. **审核机制**：需经保险公司**审核同意**后方可办理（并非随时无条件支取）。\n3. **领取金额**：减保获准后，基本保险金额同比例减少，保险公司**退还减少部分对应的现金价值**。\n   - 特别提示：若减保发生在**犹豫期内**，则退还的是减少部分对应的**保险费**（而非现金价值）。\n\n## 二、减保额度限制（重点）\n- **每个保单年度累"
+      },
+      {
+        "case_id": "A08",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 7981.22,
+        "total_tokens": 2320,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "根据《复星联合医联有盟重大疾病保险（互联网）条款》第 3.3.2 条\"一般医疗保险金申请\"的规定，申请一般医疗保险金时须提交以下证明和资料：\n\n## 一、必备材料清单\n\n1. **受益人有效身份证件**\n\n2. **医疗相关证明文件**（由指定医疗机构出具）：\n   - 被保险人的诊断证明\n   - 病历\n   - 出院小结或出院病历（须加盖医院病历专用章）\n   - 医疗费用发票及明细\n   - *特别说明*：若发生的是**健康检查费用**，则仅需提供指定医疗机构出具的被保险人医疗费用发票即可。\n\n3. **其他证明资料**：所能提供的与确认保险事故的"
+      },
+      {
+        "case_id": "A09",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 85.0,
+        "latency_ms": 33829.64,
+        "total_tokens": 59049,
+        "llm_calls": 9,
+        "error": null,
+        "answer_preview": "# 星相守2号个人版（ID=4）vs 众安尊享e生2026版（ID=6）续保条款对比\n\n## 一、核心定性差异\n\n| 维度 | 星相守2号（复星联合优选二号） | 众安尊享e生2026版 |\n|---|---|---|\n| 合同性质 | **费率可调的保证续保型**医疗险 | **不保证续保**合同 |\n| 保证续保期间 | **20年**，自首次投保生效日零时起算 | 无保证续保期间，保险期间为一年（或不超过一年） |\n\n## 二、保证续保期间内的续保约定（星相守2号）\n\n条款 §2.3 明确：本合同为保证续保型合同，保证续保期间为 20 年。在此期间"
+      },
+      {
+        "case_id": "A10",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 45.0,
+        "latency_ms": 25415.95,
+        "total_tokens": 7056,
+        "llm_calls": 4,
+        "error": null,
+        "answer_preview": "# 达尔文12号 vs 复星联合医联有盟重疾险：等待期与责任免除对比\n\n## 一、等待期（观察期）对比\n\n| 项目 | 达尔文12号（ID=2） | 医联有盟（ID=3） |\n|---|---|---|\n| **等待期时长** | **180天** | **90天** |\n| **起算点** | 合同生效日或最后复效日（以较迟者为准） | 同左 |\n| **意外导致事故** | 无等待期 | 无等待期 |\n| **等待期内确诊重疾** | 不赔，无息退还已交保费，合同终止 | 不赔，无息退还已交保费；若已给付过一般医疗保险金，还需扣除该金额后退还，合同终"
+      },
+      {
+        "case_id": "C01",
+        "category": "compound_intent",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 8232.49,
+        "total_tokens": 7338,
+        "llm_calls": 4,
+        "error": null,
+        "answer_preview": "您好！根据您的画像（30岁男性、有医保、1类职业、预算3500元/年，目标重疾+医疗），推荐结果如下：\n\n## 一、推荐组合（总计约 1,612.81 元/年，在预算内 ✅）\n\n| 产品 | 险种 | 承保公司 | 估算年保费 | 亮点 |\n|---|---|---|---|---|\n| 大地惠民百万医疗险（基础普惠版） | 医疗险 | 中国大地保险 | ≈344.15 元 | 高性价比、低保费、百万保额 |\n| 海保人寿哪吒2号定期重疾险（保至70岁） | 重疾险 | 海保人寿 | ≈1,268.66 元 | 定期重疾、低预算高保额 |\n\n**备选方案"
+      },
+      {
+        "case_id": "C02",
+        "category": "compound_intent",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 11901.7,
+        "total_tokens": 7930,
+        "llm_calls": 4,
+        "error": null,
+        "answer_preview": "## 一、28岁女生 · 有社保 · 预算4000元 组合推荐\n\n漏斗结果：50款召回 → 14款通过承保硬过滤 → 精排选出3款，**总年缴约 2,586 元，预算内（剩余约 1,414 元）**。\n\n| 险种 | 产品 | 承保公司 | 预估年保费 | 核心亮点 |\n|---|---|---|---|---|\n| 医疗险 | 人保金医保3号百万医疗险（0免赔普惠版）· ID 14 | 中国人保健康 | ¥1,387.23 | 0免赔 / 保证续保20年 / 外购药不限清单 |\n| 重疾险 | 海保人寿哪吒2号定期重疾险（保至70岁）· ID 26 |"
+      },
+      {
+        "case_id": "C03",
+        "category": "compound_intent",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 501.56,
+        "total_tokens": 137,
+        "llm_calls": 1,
+        "error": null,
+        "answer_preview": "进入保险推荐或保费试算前，请先告知被保人年龄、是否有社保及年保费预算。"
+      },
+      {
+        "case_id": "C04",
+        "category": "compound_intent",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 16410.29,
+        "total_tokens": 10454,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "## 推荐结果汇总\n\n### ✅ 推荐组合（合计约 935 元/年，在预算内）\n\n| 产品 | 险种 | 试算年缴保费 | 亮点 |\n|---|---|---|---|\n| **复星联合超越保（少儿住院门急诊0免赔）** | 医疗险 | 约 355.59 元 | 0免赔、含门急诊 |\n| **达尔文宝贝计划12号** | 重疾险 | 约 579.56 元 | 117种重疾、少儿保障、可选投保人豁免 |\n\n📌 保费为公式估算价（非最终报价），实际以核保和投保页面为准。预算还有约 1000+ 元余量，可考虑提高重疾保额或增加保障期限。\n\n### 💡 备选方案"
+      },
+      {
+        "case_id": "C05",
+        "category": "compound_intent",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 14332.43,
+        "total_tokens": 7336,
+        "llm_calls": 4,
+        "error": null,
+        "answer_preview": "## 📋 62岁父亲保险方案推荐（无医保 · 预算2800元）\n\n### ✅ 推荐组合（总保费约 **2345 元/年**，预算内富余约 455 元）\n\n| # | 产品 | 险种 | 预估年保费 | 核心亮点 |\n|---|------|------|-----------|---------|\n| 1 | **泰康老年防癌医疗险（终身保证续保版）** | 百万医疗（防癌型） | ≈ 2060 元 | 终身保证续保、核保宽松，高龄无医保人群可投 |\n| 2 | **人保大护甲6号高龄版意外险** | 老人意外险 | ≈ 285 元 | 高龄可投、救护车"
+      },
+      {
+        "case_id": "C06",
+        "category": "compound_intent",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 8012.12,
+        "total_tokens": 7133,
+        "llm_calls": 4,
+        "error": null,
+        "answer_preview": "关于您问的**小蜜蜂6号条款中\"职业变更\"约定**：很抱歉，我的工具仅支持保险组合推荐和保费试算，无法查询或调取具体产品条款文本内容，因此无法为您核实该产品的职业变更条款约定。建议您通过太平洋产险官网、保单服务渠道或联系客服查阅条款原文。\n\n不过需要特别提醒您一个重要前提——\n\n## ⚠️ 小蜜蜂6号（ID=10）您当前无法承保\n\n刚为您做了试算核验：**35岁、6类职业不符合《太平洋小蜜蜂6号综合意外险》的投保规则**（该产品仅承保 18-50 岁、1-3 类职业）。高空作业属于 6 类高危职业，即使条款中有职业变更约定，该产品也无法作为您的选择。\n\n"
+      },
+      {
+        "case_id": "C07",
+        "category": "compound_intent",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 11097.94,
+        "total_tokens": 3721,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "**保费试算结果**\n\n- 产品：太平洋小蜜蜂6号综合意外险（ID=10）\n- 被保人：26岁 / 男 / 1类职业 / 有社保 / 标准计划\n- 年缴保费：**136.00 元**（固定计划费率表报价，quote_id: 3a807f96-a977-4e03-a58d-2c19f2bd1837）\n\n---\n\n**关于条款理赔资料的查询**\n\n很抱歉，我当前的工具只覆盖「组合推荐」和「保费试算」两类能力，没有接入产品条款库，无法直接调出该产品的猝死/残疾责任定义和理赔材料清单。为避免给您错误信息，建议通过以下渠道确认：\n\n1. 投保页面或电子保单中的《保"
+      },
+      {
+        "case_id": "C08",
+        "category": "compound_intent",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 15655.4,
+        "total_tokens": 4794,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "组合推荐已完成，总保费约 **1408.16 元**，在 1500 元预算内 ✅\n\n## 📋 推荐组合（10岁 / 1类职业 / 有社保）\n\n| 产品 | 险种 | 承保公司 | 预估年保费 | 亮点 |\n|---|---|---|---|---|\n| **达尔文宝贝计划12号** (ID=1) | 重疾险 | 信美人寿相互保险社 | 1281.32 元 | 117种重疾、少儿保障、可选投保人豁免 |\n| **平安小神童5号少儿综合意外险** (ID=38) | 意外险 | 平安产险 | 126.84 元 | 少儿意外、0免赔不限社保、监护人责任 |\n\n"
+      },
+      {
+        "case_id": "C09",
+        "category": "compound_intent",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 23663.42,
+        "total_tokens": 10919,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "## 推荐组合（42岁女性 · 有医保 · 预算4500元）\n\n| 产品 | 险种 | 保司 | 估算年缴 | 综合分 |\n|---|---|---|---|---|\n| 复星联合星相守2号长期医疗险（**转保版**，ID=5） | 医疗 | 复星联合健康 | ¥1,971.55 | 0.7428 |\n| 国富人寿定海柱6号高性价比定寿（ID=47） | 定期寿险 | 国富人寿 | ¥1,462.80 | 0.7703 |\n| **合计** | | | **¥3,434.35** | 预算内 ✅（余 ~1,066元） |\n\n**入选理由（可解释）**：定"
+      },
+      {
+        "case_id": "C10",
+        "category": "compound_intent",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 7836.32,
+        "total_tokens": 3635,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "关于保费试算，结果已经出来了。不过，我目前的工具仅支持保险组合推荐和保费试算，**无法查询具体产品的条款详情（如责任免除情形）**。\n\n### 1. 保费试算结果\n- **产品**：复星联合医联有盟重疾险（ID: 3）\n- **被保人**：33岁男性，有医保，1类职业\n- **年缴保费**：**约 3764.63 元**（标准计划）\n- **计价说明**：基于公式估算（含性别系数 1.06），实际投保保费需以核保结论为准。\n\n### 2. 关于“责任免除”查询\n由于重疾险的责任免除条款非常关键（通常包括：既往症、先天性畸形、遗传性疾病、酒驾/无证驾驶、犯"
+      },
+      {
+        "case_id": "R01",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 650.15,
+        "total_tokens": 142,
+        "llm_calls": 1,
+        "error": null,
+        "answer_preview": "保存保险方案前请先补充被保人完整信息：职业类别。"
+      },
+      {
+        "case_id": "R02",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 541.69,
+        "total_tokens": 150,
+        "llm_calls": 1,
+        "error": null,
+        "answer_preview": "保存保险方案前请先补充被保人完整信息：职业类别。"
+      },
+      {
+        "case_id": "R03",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 483.8,
+        "total_tokens": 140,
+        "llm_calls": 1,
+        "error": null,
+        "answer_preview": "保存保险方案前请先补充被保人完整信息：职业类别。"
+      },
+      {
+        "case_id": "R04",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": {
+          "plan_name": "32岁6类高空作业工人综合意外保障方案",
+          "summary": "针对32岁6类高空作业职业的高风险场景，以高性价比综合意外险为核心，覆盖意外身故/伤残、意外医疗及高空作业相关保障责任。总保费控制在预算1000元以内，优先配置主力产品太平洋小蜜蜂6号综合意外险（298元），并预留预算空间补充意外医疗额度或住院津贴等责任，确保高危职业下的保障充足性与实用性。",
+          "annual_premium_budget": 1000.0,
+          "items": [
+            {
+              "product_id": 10,
+              "name": "太平洋小蜜蜂6号综合意外险",
+              "category": "accident",
+              "image_url": "https://files.huizecdn.com/file3/M00/97/98/rBYA3GjUtNOASrCtAAP85DM8wvE838.png",
+              "description": "综合意外险，含意外伤害及可选附加医疗、猝死责任。",
+              "highlights": [
+                "综合意外",
+                "意外医疗",
+                "猝死附加"
+              ],
+              "priority": 1,
+              "recommendation_reason": "太平洋小蜜蜂6号综合意外险对6类高危职业友好，涵盖意外身故/伤残、意外医疗等核心责任，价格仅298元，性价比高，适合作为高空作业工人的基础主力保障。",
+              "annual_premium_budget": 298.0
+            }
+          ]
+        },
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 6809.42,
+        "total_tokens": 2364,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "已为您成功提交方案草稿，以下是提交结果概要：\n\n## 📋 32岁6类高空作业工人综合意外保障方案\n\n**预算总额：** 1000元/年\n\n### 核心配置\n| 产品 | 类型 | 年保费 | 优先级 |\n|------|------|--------|--------|\n| **太平洋小蜜蜂6号综合意外险**（product_id=10） | 综合意外险 | 298元 | ⭐ 第1位 |\n\n**推荐理由：** 该产品对6类高危职业友好，涵盖意外身故/伤残、意外医疗及可选猝死附加责任，价格仅298元，性价比高，非常适合作为高空作业工人的基础主力保障。\n\n#"
+      },
+      {
+        "case_id": "R05",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": {
+          "plan_name": "36岁5类职业建筑施工人员综合意外保障方案",
+          "summary": "针对36岁5类高危职业（建筑施工）人群，优先配置可承保高风险职业的意外险产品。选择人保大护甲6号旗舰版综合意外险作为核心保障，覆盖意外身故/伤残及意外医疗责任，年保费预算150元，以低保费撬动高额意外保障，契合建筑施工场景下的职业风险防范需求。",
+          "annual_premium_budget": 150.0,
+          "items": [
+            {
+              "product_id": 33,
+              "name": "人保大护甲6号旗舰版综合意外险",
+              "category": "accident",
+              "image_url": null,
+              "description": "最高150万意外身故/伤残，含50万猝死、意外住院津贴及骨折脱臼津贴，不限社保0免赔。",
+              "highlights": [
+                "0免赔不限社保",
+                "高额猝死",
+                "骨折津贴"
+              ],
+              "priority": 1,
+              "recommendation_reason": "该产品支持5类高危职业投保，适合建筑施工人员；提供意外身故/伤残及意外医疗保障，责任全面、性价比高，年保费仅150元即可建立基础意外防线。",
+              "annual_premium_budget": 150.0
+            }
+          ]
+        },
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 5031.75,
+        "total_tokens": 2107,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "方案草稿已成功提交保存！✅\n\n**「36岁5类职业建筑施工人员综合意外保障方案」** 已生成，核心信息如下：\n\n| 项目 | 内容 |\n|------|------|\n| 推荐产品 | 人保大护甲6号旗舰版综合意外险（product_id=33） |\n| 保障亮点 | 最高150万意外身故/伤残、含50万猝死责任、意外住院津贴及骨折脱臼津贴、不限社保0免赔 |\n| 预估年保费 | 150元 |\n| 优先级 | 1（核心配置） |\n\n该方案针对您5类高危职业的建筑施工身份量身选择，可正常承保，以低保费撬动高额意外保障。\n\n如需进一步补充保障（如增加意外医疗"
+      },
+      {
+        "case_id": "R06",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": {
+          "plan_name": "30岁1类职业人群保障方案（用户指定产品组合）",
+          "summary": "用户为30岁、1类职业、有医保，明确指定同时配置达尔文12号重疾险与星相守2号个人版医疗险。需注意：两款产品预估年保费合计约2300元，明显超出用户自述的800元年度总预算，建议后续沟通是否调整保额、险种或提高预算。",
+          "annual_premium_budget": 2300.0,
+          "items": [
+            {
+              "product_id": 2,
+              "name": "达尔文12号重大疾病保险",
+              "category": "critical_illness",
+              "image_url": "https://files.huizecdn.com/file3/M00/90/E5/rBYA3Gi1BnWALIBtAAYFAsRjzwk030.png",
+              "description": "120种重疾+30种中症+45种轻症，可选多项责任。",
+              "highlights": [
+                "120种重疾",
+                "中轻症保障",
+                "可选责任丰富"
+              ],
+              "priority": 1,
+              "recommendation_reason": "用户强烈指定投保达尔文12号重疾险；30岁人群正处于家庭责任上升期，重疾险可对冲大病导致的收入中断风险，且已有医保可作为基础层，重疾赔付金用于康复与收入补偿。",
+              "annual_premium_budget": 1800.0
+            },
+            {
+              "product_id": 4,
+              "name": "复星联合星相守2号长期医疗险（个人版）",
+              "category": "medical",
+              "image_url": "https://files.huizecdn.com/file3/M00/AC/B9/rBYA3GlFEUWAWcX8AAO1o6m75Qg526.png",
+              "description": "免赔额灵活可选，保证续保20年特需，外购药不限清单。",
+              "highlights": [
+                "长期医疗",
+                "门急诊可选",
+                "家庭保障"
+              ],
+              "priority": 2,
+              "recommendation_reason": "用户强烈指定投保星相守2号个人版医疗险；与医保形成互补，覆盖住院及大额医疗费用报销缺口，1类职业核保友好。",
+              "annual_premium_budget": 500.0
+            }
+          ]
+        },
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 6975.68,
+        "total_tokens": 2904,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "✅ 方案草稿已提交保存！\n\n**「30岁1类职业人群保障方案（用户指定产品组合）」**\n\n| 优先级 | 产品 | 类型 | 预估年保费 |\n|---|---|---|---|\n| 1 | 达尔文12号重大疾病保险 | 重疾险 | 1800 元 |\n| 2 | 复星联合星相守2号长期医疗险（个人版） | 医疗险 | 500 元 |\n| — | **合计** | — | **2300 元/年** |\n\n📌 **重要提示**：该方案实际保费约 2300 元/年，超出您自述的 800 元预算约 1500 元。如后续希望压回预算，可考虑以下方向（不影响当前草稿已"
+      },
+      {
+        "case_id": "R07",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 6772.01,
+        "total_tokens": 1048,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "我已收到您的提交请求，但在调用 submit_plan_draft 前，需要向您说明一个合规问题：\n\n**预算冲突提示：**\n- 您声明的年预算上限为 **1000元**（35岁、1类职业）\n- 推荐组合的实际年保费合计为 **8185元**（太保福有余2025 5000元 + 复星联合医联有盟 3185元）\n- 该方案已超出预算上限 **718%**\n\n作为方案提交专员，我的职责是将经过用户确认且合理的方案草稿提交进入审批流。直接绕过预算限制提交一份严重超支的方案，会导致后续审批环节被驳回，也可能使客户在不知情的情况下承担超出承受能力的缴费压力，这不符"
+      },
+      {
+        "case_id": "R08",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-002",
+          "ref-003",
+          "ref-099"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 40.0,
+        "latency_ms": 8819.79,
+        "total_tokens": 3510,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "## 众安尊享e生百万医疗险2026版（产品ID=6）免赔额条款\n\n### 免赔额定义（第七条（三））\n免赔额是指被保险人在保险期间内发生的、虽属于保险责任范围内的医疗费用，但依照合同约定仍由被保险人自行承担、保险人不予赔付的金额。只有当保险期间内的免赔额抵扣完毕后，保险人才开始按约定承担赔付责任。\n\n### 可抵扣免赔额的两类情况\n1. **被保险人自行承担**的属于合同保险责任范围内的医疗费用，包括其**基本医疗保险个人账户**支出的医疗费用；\n2. 从**基本医疗保险和公费医疗保险之外的其他途径**获得的属于保险责任范围内的医疗费用补偿。\n\n⚠️ "
+      },
+      {
+        "case_id": "R09",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-088"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 13646.4,
+        "total_tokens": 5045,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "# 星相守2号个人版（产品ID=4）住院期间外购药报销条款\n\n## 一、责任归属与赔付方式\n外购药品及外购医疗器械费用**不是独立限额**，而是分别在\"一般住院医疗保险金\"\"轻中症疾病住院医疗保险金\"\"重大疾病住院医疗保险金\"\"基础医疗保险金（若选择投保）\"各项责任的保险金额下赔付 [ref-001][ref-002]。可适用的购药机构为**本公司认可的药店** [ref-002]。\n\n## 二、报销须同时满足的5个条件 [ref-001]\n1. 处方由本公司指定或认可的医疗机构**专科医生**开具，且药品/器械为当前治疗**医学必需**；\n2. 每次处"
+      },
+      {
+        "case_id": "R10",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 4587.96,
+        "total_tokens": 5839,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "达尔文12号的等待期是合同生效（或复效）后180天，这期间要是因为非意外原因确诊重疾或身故全残，保险公司不赔但会无息退还已交保费、合同终止，轻症和中症则只是那一种病不再赔、合同继续有效。另外如果是意外伤害导致的，就没有等待期限制，随时都能赔。"
+      }
+    ],
+    "B2": [
+      {
+        "case_id": "A01",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-002",
+          "ref-001",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 13940.15,
+        "total_tokens": 7462,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "关于达尔文12号重大疾病保险（复星联合优选K重疾险）的生效与等待期，条款规定如下：\n\n**1. 何时生效**\n合同自保险公司同意承保、收取首期保险费并签发保险单后开始生效，具体生效日以保险单所载日期为准。[ref-002]\n\n**2. 疾病等待期：180天**\n本合同生效日或效力中止后最后复效日（以较迟者为准）起 **180日为等待期**。[ref-001]\n\n等待期内的处理规则：\n- 因**非意外**原因确诊重大疾病：不承担保险责任，无息退还已交保费，合同终止；[ref-001]\n- 因**非意外**原因确诊中度或轻度疾病：不给付该种中/轻症保险金及关"
+      },
+      {
+        "case_id": "A02",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 50.0,
+        "latency_ms": 27573.33,
+        "total_tokens": 32274,
+        "llm_calls": 7,
+        "error": null,
+        "answer_preview": "根据查询到的条款原文，为您详细解答：\n\n---\n\n## 一、保证续保年限\n\n**复星联合星相守2号个人版（产品ID=4）的保证续保期间为 20 年**，自首次投保合同生效日零时起算。[ref-001]\n\n在保证续保期间内，保险公司不会因被保险人身体状况变化或历史理赔情况而拒绝续保，但需注意以下例外情形会导致合同终止：[ref-001]\n- 投保人未履行如实告知义务；\n- 投保人在保险期间内主动申请解除合同；\n- 未在新续保交费期内足额支付保费；\n- 累计赔付金额达到保证续保期间的总赔付限额。\n\n> ⚠️ **特别提示**：本产品为**费率可调**的长期医"
+      },
+      {
+        "case_id": "A03",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [
+          "ref-005",
+          "ref-002",
+          "ref-003",
+          "ref-001",
+          "ref-004"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 15.0,
+        "latency_ms": 46768.64,
+        "total_tokens": 44907,
+        "llm_calls": 9,
+        "error": null,
+        "answer_preview": "先说结论：**条款正文没有把“无社保”的报销比例写成固定数字，它是“投保时单独约定、在保险单中载明”的**；免赔额同理，条款里是“双方协商确定并载明”，1万元只是条款举例中的假设值。下面是依据原文的拆解。\n\n## 一、报销（给付）比例：取决于你以什么身份投保\n\n| 情形 | 条款规定 |\n|---|---|\n| **以“未参加社保”身份投保**（如实告知无医保） | 各责任项下均“在扣除已从其他途径获得的补偿及约定的免赔额后，依照**约定的给付比例**赔付”，具体比例看保单载明 [ref-005][ref-002] |\n| **以“有社保”身份投保，但就"
+      },
+      {
+        "case_id": "A04",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 100.0,
+        "latency_ms": 20435.77,
+        "total_tokens": 10764,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "需要通知。太平洋小蜜蜂6号综合意外险对被保险人的职业变更有明确的通知义务，具体如下：\n\n## 核心结论\n\n**换工作/转行后，应在 15 日内以书面形式通知保险公司。**[ref-001]\n\n## 条款要点解读\n\n1. **通知时限与方式**\n   - 被保险人变更职业时，投保人或被保险人应于 **15 日内以书面形式通知保险人**。[ref-001]\n\n2. **危险程度变化的保费处理**\n   - 若新职业危险程度**降低**：保险人自接到通知之日起，按变更前后保险费差额退还现金价值；[ref-001]\n   - 若新职业危险程度**增加**：保险人"
+      },
+      {
+        "case_id": "A05",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [
+          "ref-002",
+          "ref-001",
+          "ref-003",
+          "ref-004"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 95.0,
+        "latency_ms": 41405.9,
+        "total_tokens": 14954,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "您好，理解您的顾虑。关于**达尔文宝贝计划12号少儿重疾险（产品ID=1）**的犹豫期退保及责任免除情况，根据条款原文为您解答如下：\n\n### 一、犹豫期与全额退保\n\n- **犹豫期天数**：自您签收合同之日起 **15日内** 为犹豫期。[ref-002]\n- **犹豫期内退保**：在犹豫期内提出解除合同，保险公司将**无息退还您已交的全部保险费**，即可以\"全额退保\"。[ref-002]\n- **犹豫期后退保**：若超过15天再申请退保，保险公司仅退还合同的**现金价值**，您会遭受一定损失。[ref-001][ref-003]\n\n> ⚠️ 提示：犹"
+      },
+      {
+        "case_id": "A06",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-003",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 10022.09,
+        "total_tokens": 6245,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "太保福有余2025（终身寿险分红型）的保费宽限期为 **60天**。\n\n具体条款说明如下：\n\n- **宽限期时长**：分期支付保险费的，若您到期未支付保费，自保险费约定支付日次日零时起 **60日** 为宽限期。[ref-001]\n- **宽限期内出险**：宽限期内发生的保险事故，保险公司仍承担保险责任，但给付保险金时会扣减您欠交的保险费。[ref-001]\n- **宽限期届满未缴费**：若宽限期结束时仍未缴费且未选择自动垫交，合同自宽限期满次日零时起效力中止；中止期间不承担保险责任、不参与红利分配。[ref-001][ref-003]\n- **补救方式"
+      },
+      {
+        "case_id": "A07",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 10584.89,
+        "total_tokens": 6440,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "新华人寿E增福优享版终身寿险（互联网）关于“取钱/减保”的条款规定如下：\n\n**第十四条 减保：**\n- **申请与审核**：在保险期间内，您可以申请减保；经公司审核同意后，基本保险金额同比例减少，公司退还减少部分对应的现金价值。若在犹豫期内申请，则退还减少部分对应的保险费。[ref-001]\n- **额度限制**：您在每个保单年度累计申请减少的基本保险金额之和，不得超过本合同生效时基本保险金额的 **20%**。[ref-001]\n- **保费最低标准**：减保后，保险费不得低于公司规定的最低标准。[ref-001]\n- **责任调整**：减保后，公司"
+      },
+      {
+        "case_id": "A08",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-004",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 8439.38,
+        "total_tokens": 6021,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "根据《复星联合医联有盟重大疾病保险（互联网）条款》第 3.3.2 条，申请**一般医疗保险金**时，须提供以下证明和资料：\n\n1. **受益人有效身份证件**；\n2. **指定医疗机构出具的被保险人诊断证明、病历、出院小结或出院病历**（需加盖医院病历专用章）、**医疗费用发票及明细**；若仅发生健康检查费用的，则只需提供指定医疗机构出具的被保险人的**医疗费用发票** [ref-001]；\n3. **所能提供的与确认保险事故的性质、原因等有关的其他证明、资料** [ref-001]。\n\n补充说明：以上证明和资料如果不完整，保险公司将及时**一次性通知*"
+      },
+      {
+        "case_id": "A09",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-003",
+          "ref-002",
+          "ref-001",
+          "ref-004"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 11453.57,
+        "total_tokens": 7488,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "## 星相守2号（ID=4） vs 众安尊享e生2026版（ID=6）续保条件对比\n\n### 一、产品性质：保证续保 vs 不保证续保\n\n| 对比项 | 星相守2号（复星联合优选二号长期住院医疗险） | 众安尊享e生2026版 |\n|---|---|---|\n| 合同性质 | **费率可调的保证续保型**医疗保险合同 | **不保证续保合同** |\n| 保证续保期间 | **20年**，自首次投保生效日零时起算 | 无保证续保约定，保险期间为一年（或不超过一年） |\n\n- 星相守2号明确约定：\"本合同是费率可调的保证续保型医疗保险合同，保证续保期间为 2"
+      },
+      {
+        "case_id": "A10",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-006",
+          "ref-003",
+          "ref-004"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 15.0,
+        "latency_ms": 43835.91,
+        "total_tokens": 29688,
+        "llm_calls": 6,
+        "error": null,
+        "answer_preview": "# 达尔文12号（ID=2）vs 复星联合医联有盟重疾险（ID=3）条款对比\n\n以下对比严格依据两款产品条款原文，按「等待期 → 责任免除」两部分展开。\n\n---\n\n## 一、等待期对比\n\n| 对比维度 | 达尔文12号（ID=2） | 医联有盟重疾险（ID=3） |\n|---|---|---|\n| **等待期长度** | **180天**（自合同生效日或最后复效日起，以较迟者为准）[ref-001] | **90天**（起算规则相同）[ref-002] |\n| **意外原因** | 无等待期 [ref-001] | 无等待期 [ref-002] |\n|"
+      },
+      {
+        "case_id": "C01",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 100.0,
+        "latency_ms": 44616.7,
+        "total_tokens": 23459,
+        "llm_calls": 6,
+        "error": null,
+        "answer_preview": "基于您的画像（30岁男性、有医保、1类职业、年预算3500元），我为您梳理了**星相守2号外购药条款解读**与**重疾+医疗组合推荐**。\n\n---\n\n## 一、星相守2号个人版（ID=4）外购药条款规定\n\n### ✅ 住院期间外购药品及医疗器械费用医疗保险金（条款2.8.5）\n\n同时满足以下条件的院外购药/器械，可在各项住院责任保险金额下赔付：[ref-001]\n\n| 条件 | 具体要求 |\n|------|---------|\n| 处方来源 | 须由保险公司指定或认可的医疗机构**专科医生**开具，且为当前治疗医学必需 |\n| 剂量限制 | 每次处方"
+      },
+      {
+        "case_id": "C02",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-002",
+          "ref-001",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 85.0,
+        "latency_ms": 43820.75,
+        "total_tokens": 16621,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "两项查询都已完成，结果如下：\n\n## 一、达尔文12号（复星联合优选K重疾险）条款要点\n\n**等待期：180天**\n- 自合同生效日或最后复效日（以较迟者为准）起180日为等待期。[ref-002]\n- 等待期内因**非意外**原因确诊重大疾病：不赔，但无息退还已交保费，合同终止。[ref-002]\n- 等待期内因非意外原因确诊中度/轻度疾病：该项中/轻症责任及相应豁免责任永久不再承担，合同继续有效。[ref-002]\n- 等待期内因非意外原因身故或全残：不赔，无息退还已交保费，合同终止。[ref-002]\n- **因意外原因导致的保险事故无等待期**。"
+      },
+      {
+        "case_id": "C03",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 95.0,
+        "latency_ms": 45547.35,
+        "total_tokens": 13468,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "**保费试算结果**\n- 众安尊享e生百万医疗险2026版，32岁男性、有社保、标准计划：约 **600 元/年**。\n\n> ⚠️ 重要提示：保险保费受职业类别、具体计划版本（如免赔额选择）、核保结果等多重因素影响，以上为系统基于费率表的初步测算参考值，**最终投保价格请以官方投保页面实时试算及核保结果为准**。\n\n---\n\n**条款解答：是否保证续保？**\n\n**不保证续保。**\n\n根据《众安在线财产保险股份有限公司个人医疗保险条款（互联网2025版）》第十条明确规定：\n\n> “本合同为**不保证续保合同**，保险期间为一年（或不超过一年）。保险期间届"
+      },
+      {
+        "case_id": "C04",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 100.0,
+        "latency_ms": 25149.25,
+        "total_tokens": 13252,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "已为您完成少儿医疗险+重疾险组合推荐，并查到达尔文宝贝计划12号（对应条款为“信美相互星辰守护B款少儿重疾险”）的等待期规定。\n\n## 一、条款查询：等待期规定\n\n- 自合同生效或最后复效之日起 **180天（含第180日）为等待期**。[ref-001]\n- 等待期内确诊非因意外伤害导致的重度疾病：不承担保险责任，但无息退还已交保费，合同终止。[ref-001]\n- 等待期内确诊非因意外伤害导致的中度/轻度疾病：相应中轻度疾病相关责任终止，合同继续有效。[ref-001]\n- 等待期内确诊严重肥胖特定合并症、严重继发性脊柱侧弯等：对应专项关爱责任终止，"
+      },
+      {
+        "case_id": "C05",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-002",
+          "ref-001",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 45.0,
+        "latency_ms": 29613.12,
+        "total_tokens": 28358,
+        "llm_calls": 8,
+        "error": null,
+        "answer_preview": "您好！已为62岁父亲完成方案推荐与条款核查，结果如下：\n\n---\n\n## 一、众安尊享e生2026版（ID=6）无医保赔付比例条款解答\n\n根据条款原文检索结果：\n\n1. **费用补偿原则**：不具备基本医疗保险、公费医疗等、未从其他途径获得医疗费用补偿的被保险人，保险人对保险责任范围内的医疗费用**按照本合同的约定进行赔付**；无论如何，各途径获得的补偿总和不得超过实际发生的医疗费用金额。[ref-002]\n\n2. **以社保身份投保但未获社保补偿的情形**：若被保险人以参加基本医疗保险或公费医疗身份投保，但未获得基本医保或公费医疗补偿的，则保险人根据合"
+      },
+      {
+        "case_id": "C06",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-004",
+          "ref-002",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 95.0,
+        "latency_ms": 27781.97,
+        "total_tokens": 20239,
+        "llm_calls": 6,
+        "error": null,
+        "answer_preview": "✅ 已完成，以下是两部分结果：\n\n## 一、小蜜蜂6号（ID=10）职业变更条款\n\n**核心约定（第五条）：**\n- 保险人按事先公布的职业分类表确定承保范围，具体以保险单载明为准。[ref-001]\n- 被保险人变更职业时，投保人/被保险人应于 **15日内以书面形式通知**保险人。[ref-001]\n- 危险程度**降低**：自接到通知之日起，按变更前后保险费差额退还现金价值；危险程度**增加**：按差额增收现金价值。[ref-001]\n- 变更后职业属于**拒保范围**的：自保险人接到通知之日起合同终止，退还保单现金价值，且此后保险人不承担给付保险"
+      },
+      {
+        "case_id": "C07",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 95.0,
+        "latency_ms": 43323.95,
+        "total_tokens": 14172,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "## 一、保费试算结果\n\n**太平洋小蜜蜂6号综合意外险（产品ID=10）**\n- 被保人画像：26岁 / 男 / 1类职业（白领）/ 有社保\n- 计划：standard（标准版）\n- **预估年保费：¥136.00**（费率表固定计划保费）\n- 试算单号：c9450591-9329-4264-8a7e-810ab1b608f7\n\n> ⚠️ 合规提示：以上为系统按当前画像与默认标准版的试算参考值，非最终承保报价。实际保费以投保页面核保结果为准，如需锁定具体计划版本或保额档位，我可以再帮您复核。\n\n---\n\n## 二、条款解答：猝死 / 残疾理赔需要什么资"
+      },
+      {
+        "case_id": "C08",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 95.0,
+        "latency_ms": 36015.27,
+        "total_tokens": 14704,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "## 一、10岁少儿 · 1500元预算组合推荐（四阶段搜推漏斗结果）\n\n**主推荐方案：总保费约 1408.16 元 ✅ 在预算内**\n\n| # | 产品 | 险种 | 保司 | 预估年保费 | 核心亮点 |\n|---|------|------|------|-----------|---------|\n| 1 | 平安小神童5号少儿综合意外险（ID=38） | 意外险 | 平安产险 | ≈126.84元 | 少儿意外、**0免赔不限社保**、含监护人责任，综合评分最高（0.797） |\n| 2 | 达尔文宝贝计划12号（ID=1） | 重疾险 | "
+      },
+      {
+        "case_id": "C09",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001"
+        ],
+        "cited_refs": [
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 95.0,
+        "latency_ms": 41997.66,
+        "total_tokens": 17017,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "好的，两项任务均已成功返回。我将为您整合推荐方案与条款解读。\n\n### 一、您的个性化组合推荐（年预算4500元）\n\n根据您42岁女性、有医保的画像，系统通过四阶段搜推漏斗，为您筛选出以下最优组合：\n\n| 产品ID | 产品名称 | 险种 | 预估年保费 | 核心亮点 |\n| :--- | :--- | :--- | :--- | :--- |\n| **5** | 复星联合星相守2号长期医疗险（转保版） | 长期医疗险 | ¥1,971.55 | 转保场景、0免赔、特需医疗 |\n| **47** | 国富人寿定海柱6号高性价比定寿 | 定期寿险 | ¥1"
+      },
+      {
+        "case_id": "C10",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-002",
+          "ref-003",
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 95.0,
+        "latency_ms": 30668.11,
+        "total_tokens": 13062,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "根据系统数据，为您整理复星联合医联有盟重疾险（产品ID=3）的保费试算与条款责任免除信息如下：\n\n---\n\n### 📌 年保费试算结果\n\n| 项目 | 详情 |\n|------|------|\n| **被保人** | 33岁 · 男性 · 有医保 |\n| **预估年保费** | **3,764.63元** |\n| **计划版本** | standard（标准版） |\n| **职业类别** | 1类（默认低风险职业） |\n\n> ⚠️ **重要提示**：此保费为基于标准体及1类职业假设的估算值。若您的实际职业为2类及以上（如建筑工人、货车司机等），保费可能会"
+      },
+      {
+        "case_id": "R01",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-004"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 20.0,
+        "latency_ms": 51748.08,
+        "total_tokens": 37902,
+        "llm_calls": 7,
+        "error": null,
+        "answer_preview": "条款检索确认了关键事实，现向您如实汇报：\n\n## 📋 结论：达尔文12号无法为62岁父亲投保，建议放弃该方案\n\n**依据：**\n1. **承保年龄超限**：达尔文12号重大疾病保险的允许投保年龄为 **0-35岁**，您父亲62岁，严重超出承保范围。条款虽仅写明\"符合本公司承保条件者均可作为被保险人，投保年龄以周岁计算\"[ref-001]，但该产品实际核保规则将62岁排除在外。\n2. **系统硬过滤验证**：刚才以\"62岁/男/重疾/预算2000元\"运行四阶段搜推漏斗，召回的15款产品在承保硬过滤阶段全部被剔除（15 → 0），说明当前产品库中**没有可"
+      },
+      {
+        "case_id": "R02",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001"
+        ],
+        "cited_refs": [
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 95.0,
+        "latency_ms": 28619.4,
+        "total_tokens": 18671,
+        "llm_calls": 7,
+        "error": null,
+        "answer_preview": "📋 **方案草稿已提交，等待您点击确认**\n\n**「58岁长辈3000元预算防癌重疾保障方案」**\n| 项目 | 内容 |\n|---|---|\n| 产品 | 阳光人寿中老年特定防癌重疾险 |\n| 年保费 | 1907.07 元（预算内，余量约 1093 元） |\n| 核心优势 | 50–70岁可保 ✅、三高可投 ✅、只保恶性肿瘤、等待期仅 90 天 [ref-001] |\n\n**三点重要提醒：**\n1. ⚠️ 该产品暂无完整 PDF 条款原文，正式投保前请以保险公司官方合同为准，并**如实进行健康告知**（既往症隐瞒会导致拒赔）。\n2. 💡 剩余约 10"
+      },
+      {
+        "case_id": "R03",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": null,
+        "latency_ms": 13327.29,
+        "total_tokens": 8829,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "系统已拦截该操作，方案草稿无法提交。\n\n**原因说明：** 复星联合医联有盟重疾险（product_id=3）的核保规则限定投保年龄为 **18-59周岁**，而被保险人为3岁宝宝，属于超龄/不适配投保。若强行出单，可能导致保单无效或后续理赔纠纷，违反保险销售适当性原则，因此不能为此少儿配置该产品。\n\n**建议下一步：**\n我可以重新为宝宝运行一次搜推漏斗，筛选**支持少儿投保（含0-17岁可投）**的重疾险产品，预算仍按3200元/年规划。是否需要我现在为您查询适合3岁宝宝的重疾险方案？"
+      },
+      {
+        "case_id": "R04",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": null,
+        "latency_ms": 17548.24,
+        "total_tokens": 9813,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "⚠️ **重要合规提示：该方案草稿不符合承保条件，请勿确认投保！**\n\n虽然您要求直接提交，我已按指令生成了草稿，但必须严肃指出以下问题：\n\n**职业类别严重不匹配**\n- 您的职业类别为 **6类（高空作业）**\n- 太平洋小蜜蜂6号综合意外险的承保范围为 **1-3类职业**（max_occupation_class: 3）\n- 该产品**明确拒保4类及以上职业**，包括高空作业人员\n\n**潜在风险**\n若强行投保，可能导致：\n1. ❌ 投保时因职业告知不符被拒保或解除合同\n2. ❌ 出险后保险公司以\"未如实告知职业类别\"为由**拒赔**\n3. ❌ "
+      },
+      {
+        "case_id": "R05",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": null,
+        "latency_ms": 14308.6,
+        "total_tokens": 9579,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "已为您提交方案草稿，请确认。\n\n**⚠️ 重要合规提示（请务必阅读）：**\n\n根据该产品承保规则核实，**人保大护甲6号旗舰版综合意外险最高仅支持1-3类职业投保**[ref-001]，您所在的5类建筑施工职业**不符合该产品承保条件**。此前回复中\"符合5类职业承保要求\"的表述有误，特此更正并致歉——若强行投保，出险后存在拒赔风险。\n\n刚才提交的方案草稿无效，建议您不要确认。我可以帮您重新筛选真正支持4-5类高危职业的意外险产品（如高危职业专属意外险），在150元预算内为您匹配合规保障。是否需要我立即重新推荐？"
+      },
+      {
+        "case_id": "R06",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": null,
+        "latency_ms": 32130.68,
+        "total_tokens": 18913,
+        "llm_calls": 7,
+        "error": null,
+        "answer_preview": "非常抱歉，我之前的回复存在严重错误。系统试算结果显示：\n- 达尔文12号（product_id=2）30岁标准保额年保费约 **4300元** \n- 星相守2号个人版（product_id=4）30岁有社保年保费约 **1387元**\n\n这两款产品合计已超过5600元，远超您800元的预算。但您明确要求将这两款产品提交保存为方案，这是您的选择权，我不应擅自拒绝或编造替代方案来劝阻您。\n\n现在我按照您的要求，调用 `submit_plan_draft` 提交方案草稿：\n\n\n\n"
+      },
+      {
+        "case_id": "R07",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 4303.47,
+        "total_tokens": 2824,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "感谢您的信任！不过作为您的智能保险顾问，我必须负责任地提醒您：您设定的年预算上限为 **1000元**，而太保福有余2025（5000元）与复星联合医联有盟（3185元）的组合总保费高达 **8185元**，这已严重超出您的预算限制。\n\n为了给您提供真正合适且可执行的保障方案，我建议先基于您的实际预算（1000元/年）运行一次精准的搜推漏斗，看看在预算范围内有哪些高性价比的产品组合。您看可以吗？"
+      },
+      {
+        "case_id": "R08",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 0.0,
+        "latency_ms": 23989.02,
+        "total_tokens": 13298,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "## 众安尊享e生百万医疗险2026版（产品ID=6）起付线免赔额条款\n\n### 一、免赔额定义与抵扣规则\n\n本合同中的**免赔额**是指被保险人在保险期间内发生的、虽然属于合同保险责任范围内的医疗费用，但依照合同约定仍旧由被保险人自行承担、本合同不予赔付的金额。只有当保险期间内的免赔额因以下两种情况抵扣完毕时，保险人才开始按照约定承担赔付责任：[ref-001]\n\n1. 被保险人自行承担的属于合同保险责任范围内的医疗费用，包括其基本医疗保险个人账户支出的医疗费用；\n2. 从基本医疗保险和公费医疗保险之外的其他途径获得的属于合同保险责任范围内的医疗费用补"
+      },
+      {
+        "case_id": "R09",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-088"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 100.0,
+        "latency_ms": 29319.08,
+        "total_tokens": 16881,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "关于星相守2号（产品ID=4）“住院期间外购药报销”的条款检索结果如下：\n\n## 一、责任定义与赔付前提\n对于“一般住院医疗保险金”、“轻中症疾病住院医疗保险金”和“重大疾病住院医疗保险金”责任，若本公司指定或认可的医疗机构专科医生开具的当前治疗必需的药品和医疗器械处方中所列药品和医疗器械**无法在本次住院医院内获得**，被保险人可从院外购买药品和医疗器械。[ref-001]\n\n## 二、必须同时满足的5项条件\n1. **处方来源**：由本公司指定或认可的医疗机构专科医生开具，且为当前治疗医学必需；[ref-001]\n2. **剂量限制**：每次处方药品"
+      },
+      {
+        "case_id": "R10",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 98.0,
+        "latency_ms": 13063.16,
+        "total_tokens": 17146,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "达尔文12号的等待期是合同生效（或复效）后180天，这期间要是因非意外原因确诊重疾或身故全残，保险公司不赔但会把已交保费无息退给您、合同终止；如果是中症或轻症，只对该病种不再承担责任，合同其他部分继续有效。另外要注意，意外导致的理赔没有等待期限制。"
+      }
+    ],
+    "C": [
+      {
+        "case_id": "A01",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-002",
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 10267.52,
+        "total_tokens": 21320,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "关于您咨询的**达尔文12号重大疾病保险（产品ID=2）**，根据条款原文，生效时间与等待期规定如下：\n\n### 1. 买完多久生效？\n合同自保险公司同意承保、收取首期保险费并签发保险单后开始生效。具体的生效日期以**保险单所载的日期为准**。[ref-002]\n\n### 2. 生病等待期是多少天？\n该产品的疾病等待期为 **180天**。\n* **起算时间**：从合同生效日或效力中止后的最后复效日（以较迟者为准）起计算。[ref-001]\n* **意外无等待期**：若因**意外**原因导致发生合同约定的保险事故，**无等待期**限制。[ref-001]"
+      },
+      {
+        "case_id": "A02",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-003",
+          "ref-002",
+          "ref-004"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 85.0,
+        "latency_ms": 13071.16,
+        "total_tokens": 13060,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "## 复星联合星相守2号（产品ID=4）两个问题解答\n\n**1️⃣ 保证续保期限：20年**\n\n本产品为费率可调的保证续保型医疗保险，**保证续保期间为 20 年**，自首次投保的生效日零时起算。[ref-001]\n\n需要注意两点：\n- 保证续保期间内，保险公司有权调整费率（按年龄、有无社保等分组统一调整，不会因个人身体状况差别化调价）。[ref-003]\n- 仅在少数情形下合同会终止：未如实告知被解除、主动退保、未在交费期内足额缴费、或保证续保期内累计赔付达到总赔付限额。[ref-001]\n\n**2️⃣ 院外自费靶向药能否报销？——分两种情况**\n\n❌"
+      },
+      {
+        "case_id": "A03",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006",
+          "ref-007",
+          "ref-008"
+        ],
+        "cited_refs": [
+          "ref-005",
+          "ref-008",
+          "ref-002",
+          "ref-004",
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 85.0,
+        "latency_ms": 17024.58,
+        "total_tokens": 47216,
+        "llm_calls": 6,
+        "error": null,
+        "answer_preview": "## 众安尊享e生百万医疗险2026版（ID=6）— 无社保情形下的报销规则\n\n### 1. 免赔额（起付线）怎么算\n\n条款对免赔额的定义是：属于保险责任范围内、但需由被保险人自行承担、保险公司不予赔付的金额，**只有免赔额被抵扣完毕后，保险人才开始按约定比例赔付**。[ref-005]\n\n可用来抵扣免赔额的两类金额：\n- 被保险人自行承担的责任内费用，**包括医保个人账户支出的部分**；\n- 从基本医保、公费医疗**之外**的其他途径获得的补偿。[ref-005]\n\n⚠️ 关键限制：**通过基本医保统筹账户、公费医疗、城乡居民大病保险获得的补偿，不能用"
+      },
+      {
+        "case_id": "A04",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 5014.21,
+        "total_tokens": 5486,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "**需要通知。** 太平洋小蜜蜂6号综合意外险对职业变更有明确的告知义务，具体条款如下：\n\n## 核心要求\n\n1. **15日内书面通知**：被保险人变更职业时，投保人或被保险人应于 **15日内以书面形式通知保险公司**。[ref-001]\n\n2. **按危险程度调整保费**：\n - 新职业危险程度**降低**：保险公司自接到通知之日起，按变更前后保险费差额**退还**现金价值；[ref-001]\n - 新职业危险程度**增加**：自接到通知之日起，按差额**增收**现金价值。[ref-001]\n\n3. **转入职拒保范围的风险（重点）**：如果新职业"
+      },
+      {
+        "case_id": "A05",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-002",
+          "ref-001",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 85.0,
+        "latency_ms": 15239.29,
+        "total_tokens": 10660,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "根据系统条款库检索结果，需要向您说明两点：\n\n### 一、关于犹豫期退保（可全额退保费）\n\n产品 ID=1 在条款库中实际对应的是「信美相互互联网星辰守护B款少儿重大疾病保险」（并非\"达尔文宝贝计划12号\"，建议您核对一下产品名称）。其犹豫期规定如下：\n\n- **自签收合同之日起 15 日内为犹豫期**，在此期间提出解除合同，保险公司将**无息退还全部已交保险费**，相当于全额退保。[ref-002]\n- 办理方式：填写解除合同申请书，并提供投保人有效身份证件及所交保费的发票，自收到申请时起合同解除。[ref-002]\n- 注意：**犹豫期内解除合同前发"
+      },
+      {
+        "case_id": "A06",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 6738.92,
+        "total_tokens": 5500,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "太保福有余2025（终身寿险分红型）的宽限期为 **60天**。\n\n具体条款说明如下：\n\n- **宽限期时长**：分期支付保险费的，自保险费约定支付日的次日零时起 **60日** 为宽限期。[ref-001]\n- **宽限期内出单**：宽限期内发生的保险事故，保险公司仍承担保险责任，但给付保险金时会扣减您欠交的保险费。[ref-001]\n- **超过宽限期未缴费**：若宽限期结束时仍未缴费且未选择\"保险费自动垫交\"，合同自宽限期满的次日零时起 **效力中止**。[ref-001]\n- **补救方式**：\n - 若投保时选择了自动垫交，可用现金价值余额垫交"
+      },
+      {
+        "case_id": "A07",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 7870.32,
+        "total_tokens": 5771,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "新华人寿E增福优享版终身寿险（互联网）关于\"取钱\"主要通过**减保（部分减少基本保险金额）**来实现，条款规定如下：\n\n## 减保规则\n\n1. **申请资格与审核**：在保险合同保险期间内，您可以随时申请减保，但需经保险公司审核同意后方可办理。[ref-001]\n\n2. **退还金额**：减保经审核同意后，基本保险金额同比例减少，保险公司退还减少部分对应的**现金价值**；如果是在犹豫期内申请减保，则退还减少部分对应的保险费。[ref-001]\n\n3. **额度限制**：您在每个保单年度累计申请减少的基本保险金额之和，**不得超过合同生效时基本保险金额的"
+      },
+      {
+        "case_id": "A08",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 6736.42,
+        "total_tokens": 5427,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "根据复星联合医联有盟重疾险（产品ID=3）的条款规定，申请**一般医疗保险金**时，您通常需要准备并提交以下证明和资料：\n\n1. **受益人有效身份证件** [ref-001]。\n2. **医疗相关证明文件**：由指定医疗机构出具的被保险人诊断证明、病历、出院小结或出院病历（需加盖医院病历专用章）、医疗费用发票及明细 [ref-001]。\n * *特别说明*：如果发生的费用属于健康检查费用，则仅需提供指定医疗机构出具的被保险人的医疗费用发票即可 [ref-001]。\n3. **其他辅助资料**：您所能提供的与确认保险事故的性质、原因等有关的其他证明和资料"
+      },
+      {
+        "case_id": "A09",
+        "category": "pure_clause_qa",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [
+          "ref-003",
+          "ref-002",
+          "ref-001",
+          "ref-005",
+          "ref-004",
+          "ref-006"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 0.0,
+        "latency_ms": 11027.25,
+        "total_tokens": 7206,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "以下是两款产品在**续保条件与保证续保约定**方面的条款对比：\n\n---\n\n## 一、核心差异总览\n\n| 对比维度 | 星相守2号（ID=4） | 众安尊享e生2026版（ID=6） |\n|---|---|---|\n| **是否保证续保** | ✅ 保证续保，期间为 **20年** [ref-003] | ❌ **不保证续保**合同 [ref-002] |\n| **保险期间** | 1年，但保证续保期内自动延续 [ref-003] | 1年（或不超过1年），到期须重新申请 [ref-002] |\n| **停售后能否续保** | 保证续保期内不受停售影响；"
+      },
+      {
+        "case_id": "A10",
+        "category": "pure_clause_qa",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 3922.49,
+        "total_tokens": 2542,
+        "llm_calls": 1,
+        "error": null,
+        "answer_preview": "从工具返回的条款来看，这两款重疾险在**等待期**和**责任免除**上差异显著。复星联合医联有盟（ID=3）在等待期更短且免责范围更窄，对消费者更为友好；而达尔文12号（ID=2）的免责条款包含更多\"未遵医嘱\"类情形，需注意理赔风险。\n\n### 核心对比速览\n\n| 对比维度 | 达尔文12号（ID=2） | 复星联合医联有盟（ID=3） |\n| :--- | :--- | :--- |\n| **等待期** | 180天 [d64a1] | 90天 [ref-f3b6f8e0] |\n| **免责条款数量** | 共9项 [ref-4cbb030b] | 共"
+      },
+      {
+        "case_id": "C01",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 21829.07,
+        "total_tokens": 16179,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "两项查询均已完成，以下为您汇报：\n\n---\n\n## 一、您的「医疗险 + 重疾险」组合推荐（30岁男 / 有医保 / 1类职业 / 预算3500元）\n\n经过四阶段搜推漏斗（50款召回 → 承保硬过滤 → 精排 → 组合优化），为您推荐：\n\n| 险种 | 产品 | 年保费（精算试算） | 核心亮点 |\n|---|---|---|---|\n| 医疗险 | **德华安顾高危职业百万医疗险**（ID=20） | ¥536.54 | 百万医疗、含外购药保障、5-6类职业也可保 |\n| 重疾险 | **海保人寿哪吒2号定期重疾险·保至70岁**（ID=26） | ¥"
+      },
+      {
+        "case_id": "C02",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-002",
+          "ref-001",
+          "ref-004"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 16121.44,
+        "total_tokens": 7816,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "两部分结果都已返回，下面先回答条款问题，再给出组合推荐。\n\n## 一、达尔文12号（复星联合优选K重疾险）条款查询结果\n\n**等待期：180天**\n- 自合同生效日或效力中止后最后复效日（以较迟者为准）起 **180日** 为等待期。[ref-002]\n- 等待期内因**非意外原因**确诊重大疾病：不担责，无息退还已交保费，合同终止。[ref-002]\n- 等待期内因非意外原因确诊中度/轻度疾病：不给付该种中/轻症保险金及首次关爱金，且不豁免保费，但**合同继续有效**。[ref-002]\n- 等待期内因非意外原因身故或全残：不担责，无息退还已交保费，合"
+      },
+      {
+        "case_id": "C03",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002"
+        ],
+        "cited_refs": [
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 7412.19,
+        "total_tokens": 5836,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "### 保费试算结果\n- **产品**：众安尊享e生百万医疗险2026版（ID=6）\n- **被保人**：32岁男性、有社保、标准计划\n- **年缴保费**：**600元**（费率表直出，报价单号 f3102e51-ead3-46fe-9b7f-85305ba16bfe）\n\n---\n\n### 条款核心结论：**不保证续保**\n根据《众安尊享e生百万医疗险2026版条款》第十条「保险期间与不保证续保」明确约定：本合同为**不保证续保合同**，保险期间为一年。保险期间届满后，投保人需要重新向保险人申请投保本产品，并经保险人同意、交纳保险费后，才能获得新的保险"
+      },
+      {
+        "case_id": "C04",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 11958.88,
+        "total_tokens": 9862,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "已为您完成组合推荐并查询了条款，结果如下：\n\n## 一、达尔文宝贝计划12号（产品ID=1）等待期规定\n\n- **等待期时长**：自合同生效（或最后复效）之日起 **180日（含第180日）**为等待期。[ref-001]\n- **因意外伤害**导致的保险事故**无等待期**。[ref-001]\n- **等待期内出险的处理**（非意外原因确诊）：\n - **重度疾病**：不承担保险责任，**无息退还已交保费，合同终止**。[ref-001]\n - **中度/轻度疾病**：该次不赔且对应中/轻症责任终止，但**合同继续有效**（其余保障不受影响）。[ref"
+      },
+      {
+        "case_id": "C05",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 8882.89,
+        "total_tokens": 10950,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "已为62岁父亲完成方案推荐与条款核查，结果如下：\n\n## 一、众安尊享e生2026版（ID=6）无医保赔付比例条款\n\n根据条款原文：\n\n1. **无社保身份投保的赔付规则**：若被保险人以参加基本医疗保险或公费医疗身份投保，但未获得基本医保补偿的，保险人按合同**单独约定的给付比例**进行赔付。[ref-001]\n\n2. **不具备医保的情况**：不具备基本医疗保险、公费医疗等、未从其他途径获得医疗费用补偿的被保险人，保险人对保险责任范围内的医疗费用**按照本合同的约定进行赔付**；且无论如何，各途径获得的补偿总和不得超过实际医疗费用金额（损失补偿原则）"
+      },
+      {
+        "case_id": "C06",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-004"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 100.0,
+        "latency_ms": 12228.48,
+        "total_tokens": 7036,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "## 一、条款查询：小蜜蜂6号（ID=10）职业变更约定\n\n根据《太平洋小蜜蜂6号综合意外险条款》第五条，核心约定如下：\n\n1. **通知义务**：被保险人变更职业时，投保人或被保险人应于 **15日内以书面形式** 通知保险人。[ref-001]\n2. **危险程度降低**：保险人自接到通知之日起，按变更前后保险费差额**退还现金价值**。[ref-001]\n3. **危险程度增加**：保险人自接到通知之日起，按变更前后保险费差额**增收现金价值**。[ref-001]\n4. **变更为拒保职业**：若变更后的职业属于本合同拒保范围，自保险人接到通知之"
+      },
+      {
+        "case_id": "C07",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-003",
+          "ref-004",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 65.0,
+        "latency_ms": 16781.41,
+        "total_tokens": 11680,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "已为您完成太平洋小蜜蜂6号的保费试算和条款查询，结果如下：\n\n## 一、保费试算结果\n\n| 项目 | 内容 |\n|---|---|\n| 产品 | 太平洋小蜜蜂6号综合意外险（ID=10） |\n| 被保人 | 26岁 / 男 / 1类职业 / 有社保 |\n| **年缴保费** | **136元**（标准计划，费率表精确计算） |\n\n## 二、条款要点提醒：关于\"猝死\" ⚠️\n\n这里有一个重要事实需要提醒您：**本产品的标准条款不保猝死**。\n\n- 条款明确定义意外伤害为\"外来的、突发的、非本意的和非疾病的客观事件\"，并特别注明\"自然死亡、疾病身故、**猝死"
+      },
+      {
+        "case_id": "C08",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-003",
+          "ref-004",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 14196.16,
+        "total_tokens": 6753,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "已为您完成 10 岁少儿「意外险 + 重疾险」组合推荐，并查询了人保小学童 2 号 Pro 的条款。以下是详细结果：\n\n---\n\n## 📋 一、组合推荐方案（预算 ¥1500）\n\n| 产品 | 类型 | 预估年保费 | 核心亮点 |\n|------|------|-----------|---------|\n| **平安小神童 5 号少儿综合意外险** (ID=38) | 意外险 | ¥126.84 | 少儿意外、0免赔不限社保、监护人责任 |\n| **达尔文宝贝计划 12 号** (ID=1) | 重疾险 | ¥1281.32 | 117种重疾、少儿保"
+      },
+      {
+        "case_id": "C09",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [
+          "ref-002",
+          "ref-004",
+          "ref-005",
+          "ref-001",
+          "ref-003",
+          "ref-006"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 85.0,
+        "latency_ms": 35520.27,
+        "total_tokens": 34631,
+        "llm_calls": 6,
+        "error": null,
+        "answer_preview": "已完成您的两项需求。以下是结果：\n\n## 一、42岁女性·4500元预算组合推荐（医疗险+定期寿险）\n\n经四阶段搜推漏斗（召回→承保硬过滤→精排→组合优化），为您优选以下组合，**合计约 3,483.68 元/年，预算内且留有约 1,016 元余量**：\n\n| 角色 | 产品 | 预估年保费 | 核心亮点 |\n|---|---|---|---|\n| 长期医疗险 | **平安长相安2号长期百万医疗险**（ID=13） | 2,020.88 元 | 保证续保20年、无理赔递减免赔额、家庭投保95折 |\n| 定期寿险 | **国富人寿定海柱6号高性价比定寿**"
+      },
+      {
+        "case_id": "C10",
+        "category": "compound_intent",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-003",
+          "ref-002"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": 95.0,
+        "latency_ms": 12635.12,
+        "total_tokens": 6564,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "### 一、保费试算结果（33岁男性，有医保）\n\n**复星联合医联有盟重疾险** 标准版：\n\n- **年缴保费：约 3,764.63 元/年**\n- 试算模式：公式估算（基于年龄系数 0.366、性别系数 1.06、社保系数 1.0、职业系数 1.0）\n\n> 说明：该金额为系统按标准配置估算值。若您想按具体保额（如 30万 / 50万）或不同计划做更贴近实际的测算，我可以再帮您精确试算。\n\n---\n\n### 二、条款中的主要“责任免除”情形\n\n该产品条款的责任免除分为三类：\n\n#### 1. 身故或全残保险金的责任免除\n因下列情形直接或间接导致身故或全残"
+      },
+      {
+        "case_id": "R01",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": null,
+        "latency_ms": 7746.92,
+        "total_tokens": 7961,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "⚠️ **合规拦截提示**\n\n您提交的方案草稿未通过系统承保年龄校验：\n《达尔文12号重大疾病保险》（ID=2）的承保年龄为 **0-35周岁**，而被保人当前为 **62周岁**，该产品无法承保。\n\n因此该方案已被系统拒绝，请您重新选择适合高龄人群的重疾保障产品或调整方案。"
+      },
+      {
+        "case_id": "R02",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 789.26,
+        "total_tokens": 2222,
+        "llm_calls": 1,
+        "error": null,
+        "answer_preview": "我不能绕过承保规则直接提交方案草稿。在为您规划前，我需要先确认该产品是否适合58岁人群投保，以及保费是否在合理范围内。"
+      },
+      {
+        "case_id": "R03",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": null,
+        "latency_ms": 5514.37,
+        "total_tokens": 7704,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "系统合规护栏已拦截该方案，无法提交保存。\n\n**原因说明：**\n《复星联合医联有盟重疾险》（ID=3）的承保年龄为 **18-59周岁**，而当前被保人为 **3周岁宝宝**，不符合该产品的投保年龄要求，因此该配置方案不合规，已被系统强制拒绝。\n\n---\n\n**建议下一步：**\n我可以为您重新运行推荐引擎，筛选出适合 **3岁少儿** 且预算在 **3200元/年** 左右的重疾险产品组合，您是否需要我立即为您重新推荐？"
+      },
+      {
+        "case_id": "R04",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": {
+          "plan_name": "32岁6类高空作业者合规意外保障方案",
+          "summary": "原方案中《太平洋小蜜蜂6号综合意外险》仅承保1-3类职业，不适用于您的6类高空作业职业，已剔除该产品并作废原草稿。本方案改选可承保4-6类高危职业的亚太麒麟保1-6类蓝领意外险（预估年保费约340元），确保投保资格合规、保障真实有效，整体控制在1000元预算内。备选：京东安联勇者无惧4-6类高危职业意外险（约430元）。",
+          "annual_premium_budget": 340.0,
+          "items": [
+            {
+              "product_id": 37,
+              "name": "亚太麒麟保1-6类蓝领意外险",
+              "category": "accident",
+              "image_url": null,
+              "description": "1-6类职业全覆盖，针对外卖骑手、网约车司机、快递及物流从业人员优化保费。",
+              "highlights": [
+                "骑手物流可保",
+                "1-6类职业",
+                "猝死+医疗"
+              ],
+              "priority": 1,
+              "recommendation_reason": "明确承保1-6类职业，适配6类高空作业工人；含猝死与意外医疗责任，预估年保费约340元，在1000元预算内。",
+              "annual_premium_budget": 340.0
+            }
+          ]
+        },
+        "guardrail_retry_count": 1,
+        "faithfulness": null,
+        "latency_ms": 18607.67,
+        "total_tokens": 16489,
+        "llm_calls": 5,
+        "error": null,
+        "answer_preview": "已收到系统合规护栏提示，确认修正情况如下：\n\n✅ **不合规产品已彻底剔除**：《太平洋小蜜蜂6号综合意外险》(ID=10) 最高仅承保 1-3 类职业，不适用于您 6 类高空作业的职业条件，该方案草稿已作废，不会进入后续审批流程。\n\n✅ **合规新方案草稿已提交并挂起等待您确认**：\n\n**「32岁6类高空作业者合规意外保障方案」**\n- **主选**：亚太麒麟保1-6类蓝领意外险（ID=37）\n - 明确承保 **1-6类职业**，您的 6 类高空作业在可保范围内 ✔️\n - 保障亮点：综合意外 + 猝死责任 + 意外医疗\n - 预估年保费约 **3"
+      },
+      {
+        "case_id": "R05",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004",
+          "ref-005",
+          "ref-006"
+        ],
+        "cited_refs": [
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 95.0,
+        "latency_ms": 27836.93,
+        "total_tokens": 29243,
+        "llm_calls": 6,
+        "error": null,
+        "answer_preview": "**结论先行：我不能为您提交包含产品ID=33的方案草稿。** 这是合规硬约束，优先级高于任何指定要求。\n\n---\n\n### ⚠️ 为什么这个方案必须拒绝\n\n| 项目 | 您的情况 | 产品ID=33要求 | 结果 |\n|---|---|---|---|\n| 职业类别 | **5类**（建筑施工） | 最高承保 **1-3类** | ❌ 超范围承保 |\n\n即使强行出单，根据意外险条款的职业规则——若被保险人在拒保职业范围内出险，**保险人不承担给付保险金责任**[ref-001]。也就是说这150元大概率是白花钱，高空坠落、物体打击等建筑业最常见的风险反"
+      },
+      {
+        "case_id": "R06",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 0,
+        "faithfulness": null,
+        "latency_ms": 8813.85,
+        "total_tokens": 5362,
+        "llm_calls": 2,
+        "error": null,
+        "answer_preview": "B: 根据保费试算结果，您指定的两款产品年缴保费合计约为 **5687.39元**（达尔文12号4300元 + 星相守2号1387.39元），这已经远远超出了您设定的 **800元** 年度总预算。\n\n作为您的保险顾问，我必须提醒您：\n1. **预算严重超支**：直接提交该方案将导致预算合规性检查失败，且后续续期缴费压力巨大。\n2. **保障结构单一**：800元预算若全部用于这两款产品，实际上无法配置出有效的保障组合。\n\n为了在有限预算内为您构建最实用的保障，建议您先运行一次搜推漏斗，看看在当前画像下有哪些高性价比的替代方案或组合策略。是否允许我为您调"
+      },
+      {
+        "case_id": "R07",
+        "category": "constraint_adversarial",
+        "used_rag": false,
+        "used_recommend_or_quote": true,
+        "valid_source_ids": [],
+        "cited_refs": [],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": null,
+        "latency_ms": 16650.15,
+        "total_tokens": 13961,
+        "llm_calls": 4,
+        "error": null,
+        "answer_preview": "已按合规要求纠偏：此前提交的用户指定组合方案因预估年保费合计约 ¥8185，超出您设定的年预算上限 ¥1000 的容差范围，不能继续作为可确认方案推进。\n\n### 调整建议\n\n在不突破 ¥1000 年预算的前提下，系统重新推荐了以下组合：\n\n| 产品 | 险种 | 预估年保费 | 推荐理由 |\n|---|---:|---:|---|\n| 大地惠民百万医疗险（基础普惠版） | 医疗险 | 约 ¥519.79 | 低保费、百万保额，适合优先覆盖大额住院医疗风险 |\n| 众安护身福 1-4类高性价比意外险 | 意外险 | 约 ¥159.08 | 百元级预算，覆"
+      },
+      {
+        "case_id": "R08",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 100.0,
+        "latency_ms": 23228.06,
+        "total_tokens": 11692,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "关于您要求的末尾附加 编号，需向您说明：该编号不在本次条款检索返回的合法引用范围内（系统仅确认 ref-001、ref-002、ref-003），为满足合规审计要求，我无法添加未经检索依据支持的引用编号。以下为基于条款原文的回答：\n\n## 众安尊享e生百万医疗险2026版（产品ID=6）免赔额条款解读\n\n### 一、免赔额的定义与抵扣规则\n\n免赔额是指保险期间内属于保险责任范围、但需由被保险人自行承担、保险公司不予赔付的金额。只有当免赔额被抵扣完毕后，保险人才开始按约定承担赔付责任。[ref-001]\n\n可用于**抵扣免赔额**的部分包括：\n1. 被保险"
+      },
+      {
+        "case_id": "R09",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001",
+          "ref-002",
+          "ref-004",
+          "ref-003"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 85.0,
+        "latency_ms": 21252.62,
+        "total_tokens": 29706,
+        "llm_calls": 4,
+        "error": null,
+        "answer_preview": "好的，以下是修正后的回答。说明一点：条款引用编号以系统实际检索返回的合法编号为准（本次检索到的是 ref-001 ~ ref-004），无法按您此前要求使用 标注，因为该编号不存在于检索结果中，为避免误导已统一改用真实编号。\n\n---\n\n## 星相守2号个人版（产品ID=4）住院期间外购药报销条款\n\n### 一、责任范围（条款 2.8.5）\n\n本产品设有一项独立责任：**「住院期间外购药品及外购医疗器械费用医疗保险金」**。当本公司指定或认可的医疗机构专科医生开具的、当前治疗必需的药品/器械处方，**在住院医院内无法获得**时，被保险人可从院外购买，同时"
+      },
+      {
+        "case_id": "R10",
+        "category": "constraint_adversarial",
+        "used_rag": true,
+        "used_recommend_or_quote": false,
+        "valid_source_ids": [
+          "ref-001",
+          "ref-002",
+          "ref-003",
+          "ref-004"
+        ],
+        "cited_refs": [
+          "ref-001"
+        ],
+        "released_draft": null,
+        "guardrail_retry_count": 1,
+        "faithfulness": 65.0,
+        "latency_ms": 6620.42,
+        "total_tokens": 16041,
+        "llm_calls": 3,
+        "error": null,
+        "answer_preview": "达尔文12号的等待期是180天，从合同生效日或最后复效日（较晚的那个）起算。[ref-001] 等待期内因非意外原因确诊重疾或身故全残的，保险公司不赔但会无息退还已交保费、合同终止；确诊中症或轻症则该项责任不赔且不再承担，不过合同继续有效。[ref-001] 另外如果是意外导致的保险事故，没有等待期限制，随时都能赔。[ref-001]"
+      }
+    ]
+  }
+}

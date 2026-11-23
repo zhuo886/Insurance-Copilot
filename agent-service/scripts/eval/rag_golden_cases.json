@@ -1,0 +1,258 @@
+[
+  {
+    "case_id": "Q01", "case_type": "single", "product_ids": [1],
+    "query": "达尔文宝贝计划12号买完多久能赔？有观察期吗",
+    "expected_targets": [{"clause_keyword": "星辰守护B款", "section_keywords": ["1.4 等待期"]}]
+  },
+  {
+    "case_id": "Q02", "case_type": "single", "product_ids": [1],
+    "query": "信美少儿重疾后悔了几天内能全额退保",
+    "expected_targets": [{"clause_keyword": "星辰守护B款", "section_keywords": ["6.1 犹豫期"]}]
+  },
+  {
+    "case_id": "Q03", "case_type": "single", "product_ids": [1],
+    "query": "达尔文宝贝计划12号哪些情况不赔",
+    "expected_targets": [{"clause_keyword": "星辰守护B款", "section_keywords": ["2.1 责任免除"]}]
+  },
+  {
+    "case_id": "Q04", "case_type": "single", "product_ids": [2],
+    "query": "达尔文12号买完多久生效，生病多久赔",
+    "expected_targets": [{"clause_keyword": "达尔文12号", "section_keywords": ["2.3.1 等待期"]}]
+  },
+  {
+    "case_id": "Q05", "case_type": "single", "product_ids": [2],
+    "query": "达尔文12号忘交保费了还有几天宽限期",
+    "expected_targets": [{"clause_keyword": "达尔文12号", "section_keywords": ["4.2 宽限期"]}]
+  },
+  {
+    "case_id": "Q06", "case_type": "single", "product_ids": [2],
+    "query": "达尔文12号怎么理赔需要什么资料",
+    "expected_targets": [{"clause_keyword": "达尔文12号", "section_keywords": ["3.3 保险金申请", "3.3.1"]}]
+  },
+  {
+    "case_id": "Q07", "case_type": "single", "product_ids": [3],
+    "query": "医联有盟重疾险什么情况不保不赔",
+    "expected_targets": [{"clause_keyword": "医联有盟", "section_keywords": ["2.4 责任免除", "2.4.4 其他免责条款"]}]
+  },
+  {
+    "case_id": "Q08", "case_type": "single", "product_ids": [3],
+    "query": "医联有盟一般医疗理赔需要提交哪些材料",
+    "expected_targets": [{"clause_keyword": "医联有盟", "section_keywords": ["3.3.2 一般医疗保险金申请", "3.3 保险金申请"]}]
+  },
+  {
+    "case_id": "Q09", "case_type": "single", "product_ids": [4],
+    "query": "星相守2号个人版明年还能买吗？续保保证多少年",
+    "expected_targets": [{"clause_keyword": "星相守2号", "section_keywords": ["2.3 续保和保证续保"]}]
+  },
+  {
+    "case_id": "Q10", "case_type": "single", "product_ids": [4],
+    "query": "星相守2号住院报多少，起付线免赔额是多少",
+    "expected_targets": [{"clause_keyword": "星相守2号", "section_keywords": ["2.6 免赔额"]}]
+  },
+  {
+    "case_id": "Q11", "case_type": "single", "product_ids": [4],
+    "query": "星相守2号医院外面买的靶向药自费药能报销吗",
+    "expected_targets": [{"clause_keyword": "星相守2号", "section_keywords": ["2.8.5 住院期间外购药品"]}]
+  },
+  {
+    "case_id": "Q12", "case_type": "single", "product_ids": [4],
+    "query": "星相守2号以后会涨价吗，什么条件下调费率",
+    "expected_targets": [{"clause_keyword": "星相守2号", "section_keywords": ["4.3 保险费率调整"]}]
+  },
+  {
+    "case_id": "Q13", "case_type": "single", "product_ids": [5],
+    "query": "星相守2号转保版有哪些不保的除外事项",
+    "expected_targets": [{"clause_keyword": "星相守2号", "section_keywords": ["2.10.1 一般责任免除", "2.10.2 其他责任免除"]}]
+  },
+  {
+    "case_id": "Q14", "case_type": "single", "product_ids": [6],
+    "query": "尊享e生2026没有医保报销比例是多少",
+    "expected_targets": [{"clause_keyword": "尊享e生", "section_keywords": ["未获得基本医疗保险或公费医疗补偿的赔付"]}]
+  },
+  {
+    "case_id": "Q15", "case_type": "single", "product_ids": [6],
+    "query": "众安尊享e生2026起付线是多少",
+    "expected_targets": [{"clause_keyword": "尊享e生", "section_keywords": ["（三）免赔额"]}]
+  },
+  {
+    "case_id": "Q16", "case_type": "single", "product_ids": [6],
+    "query": "尊享e生2026保证续保吗，明年还能买吗",
+    "expected_targets": [{"clause_keyword": "尊享e生", "section_keywords": ["第十条 保险期间与不保证续保"]}]
+  },
+  {
+    "case_id": "Q17", "case_type": "single", "product_ids": [6],
+    "query": "尊享e生2026院外买的特药清单和外购药怎么理赔",
+    "expected_targets": [{"clause_keyword": "尊享e生", "section_keywords": ["特定药品费用医疗保险金", "一般医疗及外购药械"]}]
+  },
+  {
+    "case_id": "Q18", "case_type": "single", "product_ids": [7],
+    "query": "中英福满佳C款后悔退保的期限有多长，如何申请理赔",
+    "expected_targets": [{"clause_keyword": "福满佳C款", "section_keywords": ["9.3 保险金申请", "1.6 基本保险金额"]}]
+  },
+  {
+    "case_id": "Q19", "case_type": "single", "product_ids": [7],
+    "query": "福满佳C款怎么取钱退部分保额",
+    "expected_targets": [{"clause_keyword": "福满佳C款", "section_keywords": ["1.6 基本保险金额、当年度保险金额与申请减少基本保险金额"]}]
+  },
+  {
+    "case_id": "Q20", "case_type": "single", "product_ids": [8],
+    "query": "太保福有余2025晚交保费宽限期有几天",
+    "expected_targets": [{"clause_keyword": "福有余2025", "section_keywords": ["5.2 宽限期"]}]
+  },
+  {
+    "case_id": "Q21", "case_type": "single", "product_ids": [8],
+    "query": "太保福有余2025哪些情形不赔",
+    "expected_targets": [{"clause_keyword": "福有余2025", "section_keywords": ["2.6 责任免除"]}]
+  },
+  {
+    "case_id": "Q22", "case_type": "single", "product_ids": [9],
+    "query": "新华E增福优享版想取钱减保怎么操作",
+    "expected_targets": [{"clause_keyword": "E增福优享版", "section_keywords": ["第十四条 减保"]}]
+  },
+  {
+    "case_id": "Q23", "case_type": "single", "product_ids": [10],
+    "query": "小蜜蜂6号意外险换工作转行了需要通知保险公司吗",
+    "expected_targets": [{"clause_keyword": "小蜜蜂6号", "section_keywords": ["第五条 被保险人职业变更"]}]
+  },
+  {
+    "case_id": "Q24", "case_type": "single", "product_ids": [10],
+    "query": "小蜜蜂6号摔伤残疾了怎么理赔需要什么资料",
+    "expected_targets": [{"clause_keyword": "小蜜蜂6号", "section_keywords": ["二、残疾保险金申请", "第十四条 保险金的申请"]}]
+  },
+  {
+    "case_id": "Q25", "case_type": "single", "product_ids": [12],
+    "query": "人保小学童2号Pro学平险什么情况不保不赔",
+    "expected_targets": [{"clause_keyword": "小学童2号Pro", "section_keywords": ["2.2 责任免除"]}]
+  },
+  {
+    "case_id": "Q26", "case_type": "compare", "product_ids": [4, 6],
+    "query": "对比星相守2号和尊享e生2026在起付线免赔额上的规定",
+    "expected_targets": [
+      {"clause_keyword": "星相守2号", "section_keywords": ["2.6 免赔额"]},
+      {"clause_keyword": "尊享e生", "section_keywords": ["（三）免赔额"]}
+    ]
+  },
+  {
+    "case_id": "Q27", "case_type": "compare", "product_ids": [4, 6],
+    "query": "对比星相守2号和尊享e生2026明年还能买和保证续保条件",
+    "expected_targets": [
+      {"clause_keyword": "星相守2号", "section_keywords": ["2.3 续保和保证续保"]},
+      {"clause_keyword": "尊享e生", "section_keywords": ["第十条 保险期间与不保证续保"]}
+    ]
+  },
+  {
+    "case_id": "Q28", "case_type": "compare", "product_ids": [4, 6],
+    "query": "对比星相守2号和尊享e生2026的院外自费药外购药保障",
+    "expected_targets": [
+      {"clause_keyword": "星相守2号", "section_keywords": ["2.8.5 住院期间外购药品"]},
+      {"clause_keyword": "尊享e生", "section_keywords": ["一般医疗及外购药械", "特定药品费用医疗保险金"]}
+    ]
+  },
+  {
+    "case_id": "Q29", "case_type": "compare", "product_ids": [1, 2],
+    "query": "对比达尔文宝贝计划12号和达尔文12号买完多久能赔观察期",
+    "expected_targets": [
+      {"clause_keyword": "星辰守护B款", "section_keywords": ["1.4 等待期"]},
+      {"clause_keyword": "达尔文12号", "section_keywords": ["2.3.1 等待期"]}
+    ]
+  },
+  {
+    "case_id": "Q30", "case_type": "compare", "product_ids": [1, 2],
+    "query": "对比达尔文宝贝计划12号和达尔文12号后悔退保的犹豫期",
+    "expected_targets": [
+      {"clause_keyword": "星辰守护B款", "section_keywords": ["6.1 犹豫期"]},
+      {"clause_keyword": "达尔文12号", "section_keywords": ["1.4 犹豫期"]}
+    ]
+  },
+  {
+    "case_id": "Q31", "case_type": "compare", "product_ids": [2, 3],
+    "query": "对比达尔文12号和医联有盟重疾险哪些情况不赔",
+    "expected_targets": [
+      {"clause_keyword": "达尔文12号", "section_keywords": ["2.4 责任免除", "2.4.1", "2.4.2", "2.4.3"]},
+      {"clause_keyword": "医联有盟", "section_keywords": ["2.4 责任免除", "2.4.4"]}
+    ]
+  },
+  {
+    "case_id": "Q32", "case_type": "compare", "product_ids": [8, 9],
+    "query": "对比太保福有余2025和新华E增福晚交保费宽限期条款",
+    "expected_targets": [
+      {"clause_keyword": "福有余2025", "section_keywords": ["5.2 宽限期"]},
+      {"clause_keyword": "E增福优享版", "section_keywords": ["第九条 宽限期"]}
+    ]
+  },
+  {
+    "case_id": "Q33", "case_type": "compare", "product_ids": [7, 9],
+    "query": "对比中英福满佳C款和新华E增福怎么取钱减保",
+    "expected_targets": [
+      {"clause_keyword": "福满佳C款", "section_keywords": ["1.6 基本保险金额、当年度保险金额与申请减少基本保险金额"]},
+      {"clause_keyword": "E增福优享版", "section_keywords": ["第十四条 减保"]}
+    ]
+  },
+  {
+    "case_id": "Q34", "case_type": "compare", "product_ids": [10, 12],
+    "query": "对比小蜜蜂6号和小学童2号Pro摔伤残疾理赔申请材料",
+    "expected_targets": [
+      {"clause_keyword": "小蜜蜂6号", "section_keywords": ["第十四条 保险金的申请", "二、残疾保险金申请"]},
+      {"clause_keyword": "小学童2号Pro", "section_keywords": ["5 保险金申请", "5.2 意外伤残保险金申请"]}
+    ]
+  },
+  {
+    "case_id": "Q35", "case_type": "compare", "product_ids": [4, 6, 10],
+    "query": "对比星相守2号、尊享e生2026和小蜜蜂6号的除外不赔责任",
+    "expected_targets": [
+      {"clause_keyword": "星相守2号", "section_keywords": ["2.10.1 一般责任免除", "2.10.2 其他责任免除"]},
+      {"clause_keyword": "尊享e生", "section_keywords": ["第九条 责任免除"]},
+      {"clause_keyword": "小蜜蜂6号", "section_keywords": ["第十条 责任免除"]}
+    ]
+  },
+  {
+    "case_id": "Q36", "case_type": "global", "product_ids": null,
+    "query": "哪款医疗险写明了保证续保以及保证续保期间费率调整",
+    "expected_targets": [{"clause_keyword": "星相守2号", "section_keywords": ["2.3 续保和保证续保", "4.3 保险费率调整"]}]
+  },
+  {
+    "case_id": "Q37", "case_type": "global", "product_ids": null,
+    "query": "百万医疗险没有医保时赔付比例是多少",
+    "expected_targets": [{"clause_keyword": "尊享e生", "section_keywords": ["未获得基本医疗保险或公费医疗补偿的赔付"]}]
+  },
+  {
+    "case_id": "Q38", "case_type": "global", "product_ids": null,
+    "query": "重疾险买完多久能赔，观察期是多少天",
+    "expected_targets": [{"clause_keyword": "条款.pdf", "section_keywords": ["等待期"]}]
+  },
+  {
+    "case_id": "Q39", "case_type": "global", "product_ids": null,
+    "query": "意外险换工作转行了职业变更怎么通知处理",
+    "expected_targets": [{"clause_keyword": "小蜜蜂6号", "section_keywords": ["第五条 被保险人职业变更"]}]
+  },
+  {
+    "case_id": "Q40", "case_type": "global", "product_ids": null,
+    "query": "终身寿险取钱减保怎么申请，有什么限制",
+    "expected_targets": [{"clause_keyword": "条款.pdf", "section_keywords": ["减保", "减少基本保险金额"]}]
+  },
+  {
+    "case_id": "Q41", "case_type": "global", "product_ids": null,
+    "query": "长期住院医疗险住院期间院外自费药外购药怎么报",
+    "expected_targets": [{"clause_keyword": "星相守2号", "section_keywords": ["2.8.5 住院期间外购药品"]}]
+  },
+  {
+    "case_id": "Q42", "case_type": "global", "product_ids": null,
+    "query": "个人人身意外伤害保险发生事故后怎么通知报案",
+    "expected_targets": [{"clause_keyword": "小蜜蜂6号", "section_keywords": ["第十三条 保险事故通知"]}]
+  },
+  {
+    "case_id": "Q43", "case_type": "global", "product_ids": null,
+    "query": "学生幼儿意外伤害保险身故理赔需要什么材料",
+    "expected_targets": [{"clause_keyword": "小学童2号Pro", "section_keywords": ["5.1 意外身故保险金申请", "5 保险金申请"]}]
+  },
+  {
+    "case_id": "Q44", "case_type": "global", "product_ids": null,
+    "query": "重大疾病异地转诊公共交通和住宿费用怎么保",
+    "expected_targets": [{"clause_keyword": "尊享e生", "section_keywords": ["重大疾病异地转诊公共交通费用及住宿费用"]}]
+  },
+  {
+    "case_id": "Q45", "case_type": "global", "product_ids": null,
+    "query": "住院医疗险的补偿原则是什么，会重复报销吗",
+    "expected_targets": [{"clause_keyword": "星相守2号", "section_keywords": ["2.9 补偿原则"]}]
+  }
+]

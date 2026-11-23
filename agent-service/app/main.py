@@ -11,8 +11,6 @@ from app.core.exceptions import ApplicationError
 
 from app.modules.chat_thread.exceptions import ChatThreadNotFoundError
 from app.infra.checkpointer import close_checkpointer, init_checkpointer
-
-from app.agents.insurance_advisor import init_insurance_agent
 from app.agents.orchestrator import init_insurance_orchestrator
 # 日志配置
 configure_logging(settings.logging.level)
@@ -60,6 +58,9 @@ app.include_router(chat_thread_router)
 
 from app.modules.chat.router import router as chat_router
 app.include_router(chat_router)
+
+from app.modules.insurance_plan.router import router as insurance_plan_router
+app.include_router(insurance_plan_router)
 
 # 测试接口,健康检查
 @app.get("/healthy",summary="健康检查接口")

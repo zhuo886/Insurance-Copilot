@@ -1,4 +1,5 @@
 from collections.abc import AsyncIterator
+import time
 from typing import Any
 
 from fastapi.sse import ServerSentEvent
@@ -50,7 +51,6 @@ def merge_turn_additional_info(
 
     handled = False
 
-    # 1. 条款引用来源（支持包装键或裸 {ref-001: {...}} 字典）
     sources_payload = incoming.get("clause_sources") or incoming.get("sources")
     if isinstance(sources_payload, dict):
         existing_sources = dict(merged.get("clause_sources") or {})
@@ -58,7 +58,6 @@ def merge_turn_additional_info(
         merged["clause_sources"] = existing_sources
         handled = True
 
-    # 2. 列表类卡片（候选产品 / 推荐方案 / 保单）
     for key in _LIST_KEYS:
         payload = incoming.get(key)
         if isinstance(payload, list):
@@ -78,7 +77,6 @@ def merge_turn_additional_info(
         merged["policies"] = existing_policies
         handled = True
 
-    # 3. 兼容旧工具直接返回 {"ref-001": {"content": ...}} 的结构
     if not handled:
         existing_sources = dict(merged.get("clause_sources") or {})
         existing_sources.update(incoming)
@@ -92,7 +90,6 @@ def extract_pending_interrupt(snapshot: Any) -> dict[str, Any] | None:
     if snapshot is None:
         return None
 
-    # 优先读取 LangGraph 提供的 snapshot.interrupts（如存在），再兜底遍历 tasks
     direct_interrupts = getattr(snapshot, "interrupts", None) or ()
     for intr in direct_interrupts:
         value = getattr(intr, "value", intr)
@@ -119,6 +116,8 @@ class ChatService:
         user_id: int,
         request: ChatRequest,
     ) -> AsyncIterator[ServerSentEvent]:
+        turn_start = time.perf_counter()
+
         # 1. 校验会话归属权
         thread = await self.repository.find_owned(
             request.thread_id,
@@ -151,6 +150,11 @@ class ChatService:
         additional_info: dict[str, Any] = {}
         streamed_ids: set[str] = set()
 
+        # 若本轮触发过条款检索，则对顾问节点的文本增量做节点级缓冲，待自检护栏通过后再推前端，避免错字/重推
+        rag_buffering = False
+        buffered_chunks: list[str] = []
+        buffered_msg_id: str | None = None
+
         async for event in stream:
             method = event.get("method")
             params = event.get("params") or {}
@@ -160,7 +164,6 @@ class ChatService:
                 namespace=params.get("namespace"),
             )
 
-            # 2.1 消息事件：只推送面向用户的文本增量
             if method == "messages":
                 namespace = params.get("namespace") or []
                 items = params.get("data") or []
@@ -169,63 +172,108 @@ class ChatService:
 
                 payload = items[0]
                 metadata = items[1] if len(items) > 1 else {}
+                langgraph_node = metadata.get("langgraph_node") if isinstance(metadata, dict) else None
 
                 # 过滤父图内部 route 节点的结构化输出
-                if (
-                    not namespace
-                    and isinstance(metadata, dict)
-                    and metadata.get("langgraph_node") == "route"
-                ):
+                if not namespace and langgraph_node == "route":
                     continue
+
+                should_buffer = rag_buffering and langgraph_node in ("advisor_agent", "agent")
 
                 if isinstance(payload, dict):
                     evt = payload.get("event")
 
                     if evt == "message-start":
-                        final_message_id = payload.get("id") or final_message_id
+                        msg_id = payload.get("id")
+                        final_message_id = msg_id or final_message_id
+                        if should_buffer and msg_id != buffered_msg_id:
+                            # 新一轮生成（或护栏触发重生成）清空未核验的草稿缓冲
+                            buffered_chunks = []
+                            buffered_msg_id = msg_id
 
                     elif evt == "content-block-delta":
                         delta = payload.get("delta") or {}
                         if delta.get("type") == "text-delta":
                             text = delta.get("text") or ""
                             if text:
-                                if final_message_id:
-                                    streamed_ids.add(final_message_id)
-                                yield ServerSentEvent(data=text, event="message")
+                                if should_buffer:
+                                    buffered_chunks.append(text)
+                                else:
+                                    if final_message_id:
+                                        streamed_ids.add(final_message_id)
+                                    yield ServerSentEvent(data=text, event="message")
 
                     elif evt == "content-block-finish":
                         continue
 
                 elif isinstance(payload, AIMessage):
+                    if getattr(payload, "tool_calls", None):
+                        continue
                     message_id = getattr(payload, "id", None)
                     if message_id and message_id in streamed_ids:
                         continue
                     text = getattr(payload, "text", "") or ""
                     if text:
-                        if message_id:
-                            final_message_id = message_id
-                            streamed_ids.add(message_id)
-                        yield ServerSentEvent(data=text, event="message")
+                        if langgraph_node == "verify_response":
+                            # 护栏确定性替换或拦截拒批文案时，丢弃旧草稿缓冲并下发唯一最终回复
+                            buffered_chunks = []
+                            buffered_msg_id = None
+                            if message_id:
+                                final_message_id = message_id
+                                streamed_ids.add(message_id)
+                            yield ServerSentEvent(data=text, event="message")
+                        elif should_buffer:
+                            if message_id != buffered_msg_id:
+                                buffered_chunks = [text]
+                                buffered_msg_id = message_id
+                            else:
+                                buffered_chunks.append(text)
+                            final_message_id = message_id or final_message_id
+                        else:
+                            if message_id:
+                                final_message_id = message_id
+                                streamed_ids.add(message_id)
+                            yield ServerSentEvent(data=text, event="message")
 
-            # 2.2 custom 事件：累加并推送引用来源 / 产品 / 保单卡片
             elif method == "custom":
                 data = params.get("data")
-                if isinstance(data, dict) and data.get("type") == "additional_info":
+                if isinstance(data, dict) and data.get("type") == "guardrail_buffer":
+                    rag_buffering = True
+                elif isinstance(data, dict) and data.get("type") == "additional_info":
                     incoming = data.get("data", {})
                     additional_info = merge_turn_additional_info(additional_info, incoming)
+                    if "clause_sources" in additional_info:
+                        rag_buffering = True
                     yield ServerSentEvent(data=incoming, event="additional_info")
 
-        # 3. 持久化本轮附加信息到 Checkpointer 状态
-        if final_message_id and additional_info:
+        # 3. 若本轮启用了 RAG/草稿缓冲，流结束时统一下发已通过确定性护栏校验的最终回复
+        if rag_buffering and buffered_chunks:
+            final_text = "".join(buffered_chunks)
+            if final_message_id:
+                streamed_ids.add(final_message_id)
+            yield ServerSentEvent(data=final_text, event="message")
+
+        # 4. 流结束后先检查快照是否存在挂起的 HITL interrupt
+        snapshot = await self.agent.aget_state(config)
+        pending_interrupt = extract_pending_interrupt(snapshot)
+
+        # 5. 仅在无挂起中断时持久化本轮附加信息到 Checkpointer 状态，避免覆写挂起中的中断状态
+        if pending_interrupt is None and final_message_id and additional_info:
             await self.agent.aupdate_state(
                 config,
                 {"additional_info": {final_message_id: additional_info}},
             )
 
-        # 4. 流结束后检查快照是否存在挂起的 HITL interrupt，可靠推送给前端
-        snapshot = await self.agent.aget_state(config)
-        pending_interrupt = extract_pending_interrupt(snapshot)
+        # 6. 若存在挂起的 HITL interrupt，可靠推送给前端
         if pending_interrupt is not None:
             yield ServerSentEvent(data=pending_interrupt, event="interrupt")
 
+        logger.info(
+            "对话流式响应完成",
+            thread_id=str(request.thread_id),
+            user_id=user_id,
+            rag_buffered=rag_buffering,
+            has_interrupt=pending_interrupt is not None,
+            latency_ms=round((time.perf_counter() - turn_start) * 1000, 2),
+        )
         yield ServerSentEvent(data="[DONE]", event="done")
