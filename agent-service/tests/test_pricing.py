@@ -1,6 +1,14 @@
+import pytest
+
+from app.modules.premium.service import (
+    _extract_answer,
+    _parse_gender,
+    _parse_occupation_class,
+    _parse_social_security,
+)
 from app.modules.product.catalog_data import load_builtin_catalog
-from app.recsys.pricing import PremiumEstimator
-from app.recsys.schemas import RecUserProfile
+from app.recsys.pricing import PremiumEstimator, _occupation_matches
+from app.recsys.schemas import ProductCandidate, RecUserProfile
 
 
 def test_tier1_official_rate_tables_hit_11_of_12_products():
@@ -93,3 +101,106 @@ def test_missing_pdf_product_id1_falls_back_with_explicit_disclaimer():
     assert "暂缺官方精算费率表" in kid_young.pricing_disclaimer
     assert kid_young.annual_premium > 0
     assert kid_young.annual_premium <= kid_mid.annual_premium <= kid_old.annual_premium
+
+
+@pytest.mark.parametrize(
+    ("pid", "age", "expected_mode"),
+    [
+        (1, 5, "estimated_formula"),
+        (2, 30, "table"),
+        (3, 35, "table"),
+        (4, 30, "table"),
+        (5, 62, "table"),
+        (6, 30, "table"),
+        (7, 30, "table"),
+        (8, 30, "table"),
+        (9, 30, "table"),
+        (10, 30, "table"),
+        (11, 30, "table"),
+        (12, 10, "table"),
+    ],
+)
+def test_every_builtin_product_estimates_cleanly(pid: int, age: int, expected_mode: str):
+    catalog = {item.id: item for item in load_builtin_catalog()}
+    estimator = PremiumEstimator()
+    est = estimator.estimate(catalog[pid], RecUserProfile(age=age, occupation_class=1, has_social_security=True))
+    assert est.pricing_mode == expected_mode
+    assert est.annual_premium > 0
+
+
+@pytest.mark.parametrize(
+    ("rule", "user_occ", "expected"),
+    [
+        ("all", 6, True),
+        ("*", 3, True),
+        ("", 1, True),
+        ("1-4", 4, True),
+        ("1-4", 5, False),
+        ("3", 3, True),
+        ("3", 2, False),
+        ("invalid", 1, False),
+    ],
+)
+def test_occupation_matches_handles_all_formats(rule: str, user_occ: int, expected: bool):
+    assert _occupation_matches(rule, user_occ) is expected
+
+
+def test_coverage_amount_scaling_and_social_security_differential():
+    catalog = {item.id: item for item in load_builtin_catalog()}
+    estimator = PremiumEstimator()
+    profile = RecUserProfile(age=30, gender="female", has_social_security=True)
+
+    p10 = estimator.estimate(catalog[2], profile, coverage_amount=100000.0).annual_premium
+    p30 = estimator.estimate(catalog[2], profile, coverage_amount=300000.0).annual_premium
+    p50 = estimator.estimate(catalog[2], profile, coverage_amount=500000.0).annual_premium
+    assert p30 == round(p10 * 3, 2)
+    assert p50 == round(p10 * 5, 2)
+
+    # 医疗险无社保费率应严格高于有社保费率
+    with_ss = estimator.estimate(catalog[6], RecUserProfile(age=30, has_social_security=True)).annual_premium
+    no_ss = estimator.estimate(catalog[6], RecUserProfile(age=30, has_social_security=False)).annual_premium
+    assert no_ss > with_ss
+
+
+def test_custom_rate_table_injection_per_10000_sum_assured():
+    prod = ProductCandidate(id=99, name="测试定寿", clause_name="t.md", category="life", insurer="测试")
+    est = PremiumEstimator(
+        rate_table_items={
+            99: [
+                {
+                    "plan_code": "standard",
+                    "age_min": 18,
+                    "age_max": 50,
+                    "gender": "male",
+                    "social_security": "all",
+                    "occupation_class": "1-4",
+                    "payment_period": "20y",
+                    "rate_type": "per_10000_sum_assured",
+                    "rate_value": 12.5,
+                }
+            ]
+        }
+    )
+    res = est.estimate(prod, RecUserProfile(age=30, gender="male", occupation_class=2), coverage_amount=1000000.0)
+    assert res.pricing_mode == "table"
+    assert res.annual_premium == 1250.0
+    assert res.breakdown["rate_per_10000"] == 12.5
+
+
+def test_premium_service_answer_parsers():
+    nested = {"insured": {"age": 28, "gender": "female"}, "flat_key": 10000}
+    assert _extract_answer(nested, "insured.age", "age") == 28
+    assert _extract_answer(nested, "flat_key") == 10000
+    assert _extract_answer(nested, "insured.missing", "alt", default=1) == 1
+
+    assert _parse_social_security(False) is False
+    assert _parse_social_security("无社保") is False
+    assert _parse_social_security("yes") is True
+
+    assert _parse_occupation_class("1-4类") == 4
+    assert _parse_occupation_class("99") == 6
+    assert _parse_occupation_class("abc") == 1
+
+    assert _parse_gender("F") == "female"
+    assert _parse_gender("女") == "female"
+    assert _parse_gender("male") == "male"

@@ -34,7 +34,6 @@ def test_extract_profile_by_regex_handles_slots_and_ignores_coverage_amount():
     assert "保证续保20年" in p1["preferences"]
     assert "外购药" in p1["preferences"]
 
-    # 不应把保额 100 万误当成保费预算，而是抽取预算 1.2 万 -> 12000
     p2 = extract_profile_by_regex("给62周岁爸爸买，没有医保，想买100万保额的医疗险，每年预算1.2万，三高能买吗")
     assert p2["age"] == 62
     assert p2["gender"] == "male"
@@ -57,7 +56,6 @@ def test_guardrails_citations_and_plan_draft_checks():
         "ref-003",
     ]
 
-    # 正常中文年份或方括号标签不得误报为引用编号
     assert extract_all_citation_tokens("众安2026版[推荐]保额[100万]，依据[ref-001]和伪标[d64a1][ref-f3b6f8e0]") == [
         "ref-001",
         "d64a1",
@@ -69,7 +67,6 @@ def test_guardrails_citations_and_plan_draft_checks():
     assert len(bad_ref_errors) == 1
     assert "ref-999" in bad_ref_errors[0]
 
-    # 未调用 RAG 却凭记忆编造十六进制假编号 [d64a1] / [ref-f3b6f8e0] 同样必须被拦截
     unretrieved_fake_errors = verify_citations(
         "等待期180天[d64a1]，对比产品等待期90天[ref-f3b6f8e0]。",
         set(),
@@ -329,7 +326,6 @@ def test_sanitize_citations_strips_hex_fake_refs_without_appending_footer():
     assert extract_all_citation_tokens(cleaned) == ["ref-001"]
     assert "ref-099" not in cleaned and "ref-f3b6f8e0" not in cleaned and "d64a1" not in cleaned
 
-    # 绝不在文末强制硬贴 [:3] 脚标凑数，确保评测如实暴露漏标
     omitted = "这款重疾险的等待期为180天，非意外确诊退还已交保费。"
     not_appended = sanitize_citations(omitted, {"ref-001", "ref-002"}, rag_used=True)
     assert not_appended == omitted
@@ -478,3 +474,137 @@ async def test_claim_subgraph_citation_guardrail_retries_and_strips_fake_refs():
     assert res["guardrail_retry_count"] == 1
     assert extract_all_citation_tokens(final_text) == ["ref-001"]
     assert "d64a1" not in final_text and "ref-888" not in final_text
+
+
+async def test_advisor_direct_reply_and_empty_rag_honesty_do_not_retry():
+    @tool
+    async def empty_clause_tool(query: str) -> str:
+        """返回空结果的条款工具"""
+        return json.dumps({"status": "not_found", "source_ids": [], "sources": {}}, ensure_ascii=False)
+
+    class DirectModel:
+        def bind_tools(self, _tools):
+            return self
+
+        async def ainvoke(self, _messages, config=None):
+            return AIMessage(id="direct-1", content="您好，重疾险主要保障合同约定的重大疾病风险。")
+
+    direct_graph = build_insurance_advisor_graph(
+        model=DirectModel(), tools=[empty_clause_tool], checkpointer=MemorySaver()
+    )
+    res_direct = await direct_graph.ainvoke(
+        {"messages": [HumanMessage(content="什么是重疾险")]},
+        config={"configurable": {"thread_id": str(uuid4()), "user_id": 1}},
+    )
+    assert res_direct["guardrail_retry_count"] == 0
+    assert res_direct["messages"][-1].content == "您好，重疾险主要保障合同约定的重大疾病风险。"
+
+    class HonestEmptyRagModel:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def bind_tools(self, _tools):
+            return self
+
+        async def ainvoke(self, _messages, config=None):
+            self.calls += 1
+            if self.calls == 1:
+                return AIMessage(
+                    id="e-tc",
+                    content="",
+                    tool_calls=[{"name": "empty_clause_tool", "args": {"query": "不存在条款"}, "id": "ec-1", "type": "tool_call"}],
+                )
+            return AIMessage(id="e-ans", content="知识库暂未检索到该产品的完整合同条款，暂无法确认。")
+
+    model_inst = HonestEmptyRagModel()
+    honest_graph = build_insurance_advisor_graph(
+        model=model_inst, tools=[empty_clause_tool], checkpointer=MemorySaver()
+    )
+    res_honest = await honest_graph.ainvoke(
+        {"messages": [HumanMessage(content="未知产品条款怎么赔")]},
+        config={"configurable": {"thread_id": str(uuid4()), "user_id": 1}},
+    )
+    assert model_inst.calls == 2
+    assert res_honest["guardrail_retry_count"] == 0
+
+
+async def test_advisor_omitted_citation_triggers_single_retry_and_recovers():
+    @tool
+    async def clause_tool(query: str) -> str:
+        """检索条款工具"""
+        return json.dumps(
+            {"status": "ok", "source_ids": ["ref-001"], "sources": {"ref-001": {"content": "等待期180天"}}},
+            ensure_ascii=False,
+        )
+
+    class OmittedThenFixedModel:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def bind_tools(self, _tools):
+            return self
+
+        async def ainvoke(self, _messages, config=None):
+            self.calls += 1
+            if self.calls == 1:
+                return AIMessage(
+                    id="om-tc",
+                    content="",
+                    tool_calls=[{"name": "clause_tool", "args": {"query": "等待期"}, "id": "om-1", "type": "tool_call"}],
+                )
+            if self.calls == 2:
+                return AIMessage(id="om-bad", content="该产品的等待期为一百八十天，等待期内非意外出险退还保费。")
+            return AIMessage(id="om-ok", content="该产品等待期为180天。[ref-001]")
+
+    graph = build_insurance_advisor_graph(
+        model=OmittedThenFixedModel(), tools=[clause_tool], checkpointer=MemorySaver()
+    )
+    res = await graph.ainvoke(
+        {"messages": [HumanMessage(content="查下等待期")]},
+        config={"configurable": {"thread_id": str(uuid4()), "user_id": 1}},
+    )
+    assert res["guardrail_retry_count"] == 1
+    assert extract_cited_refs(res["messages"][-1].content) == ["ref-001"]
+
+
+async def test_claim_subgraph_valid_direct_pass_and_resets_across_turns():
+    @tool
+    async def claim_rag_tool(query: str) -> str:
+        """假理赔检索"""
+        return json.dumps(
+            {"status": "ok", "source_ids": ["ref-001"], "sources": {"ref-001": {"content": "10日内通知"}}},
+            ensure_ascii=False,
+        )
+
+    class MultiTurnClaimModel:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def bind_tools(self, _tools):
+            return self
+
+        async def ainvoke(self, _messages, config=None):
+            self.calls += 1
+            if self.calls == 1:
+                return AIMessage(
+                    id="t1-tc",
+                    content="",
+                    tool_calls=[{"name": "claim_rag_tool", "args": {"query": "报案时效"}, "id": "c1", "type": "tool_call"}],
+                )
+            if self.calls == 2:
+                return AIMessage(id="t1-ok", content="出险后应在10日内报案通知保险人。[ref-001]")
+            # 第二轮未调用 RAG，靠首轮重置应清空 last_rag_used 与 retrieved_source_ids
+            return AIMessage(id="t2-direct", content="请先选择您的保单以便查看理赔申请表。")
+
+    graph = build_claim_agent_graph(
+        model=MultiTurnClaimModel(), tools=[claim_rag_tool], checkpointer=MemorySaver()
+    )
+    cfg = {"configurable": {"thread_id": str(uuid4()), "user_id": 1}}
+
+    r1 = await graph.ainvoke({"messages": [HumanMessage(content="几天内报案")]}, config=cfg)
+    assert r1["guardrail_retry_count"] == 0 and r1["last_rag_used"] is True
+
+    r2 = await graph.ainvoke({"messages": [HumanMessage(content="怎么下载申请书")]}, config=cfg)
+    assert r2["guardrail_retry_count"] == 0
+    assert r2["last_rag_used"] is False
+    assert r2["retrieved_source_ids"] == []

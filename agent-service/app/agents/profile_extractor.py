@@ -77,8 +77,12 @@ def extract_profile_by_regex(text: str) -> dict[str, Any]:
     if any(kw in cleaned for kw in ("男性", "男士", "男生", "男宝", "儿子", "爸爸", "父亲", "爷爷", "外公", "老公", "丈夫", "男")):
         if not any(neg in cleaned for neg in ("男女", "女生", "女性")):
             extracted["gender"] = "male"
-    if "gender" not in extracted and any(
-        kw in cleaned for kw in ("女性", "女士", "女生", "女宝", "女儿", "妈妈", "母亲", "奶奶", "外婆", "老婆", "妻子", "阿姨", "女")
+    if (
+        "gender" not in extracted
+        and "男女" not in cleaned
+        and any(
+            kw in cleaned for kw in ("女性", "女士", "女生", "女宝", "女儿", "妈妈", "母亲", "奶奶", "外婆", "老婆", "妻子", "阿姨", "女")
+        )
     ):
         extracted["gender"] = "female"
 

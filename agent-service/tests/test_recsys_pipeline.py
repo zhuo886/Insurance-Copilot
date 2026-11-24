@@ -1,8 +1,10 @@
+import pytest
+
 from app.modules.product.catalog_data import load_builtin_catalog
 from app.recsys.filter import filter_eligible_candidates
 from app.recsys.pipeline import RecSysPipeline
 from app.recsys.pricing import PremiumEstimator
-from app.recsys.recall import rrf_fuse
+from app.recsys.recall import build_profile_query_text, rrf_fuse, tokenize_insurance_text
 from app.recsys.reranker import mmr_diversify, optimize_budget_portfolio
 from app.recsys.schemas import (
     PremiumEstimate,
@@ -11,6 +13,7 @@ from app.recsys.schemas import (
     ScoreBreakdown,
     ScoredCandidate,
 )
+from app.recsys.scorer import extract_query_preference_tags, score_candidates
 
 
 def test_rrf_fuse_combines_channels_and_preserves_multi_category_quota():
@@ -47,7 +50,6 @@ def test_hard_filter_blocks_age_and_occupation_violations_on_12_products():
     assert len(catalog) == 12
     estimator = PremiumEstimator()
 
-    # 62 岁 2 类职业老人：必须拦截达尔文12号(max 35)、星相守个人版(max 55)、小蜜蜂6号(max 50)
     senior_profile = RecUserProfile(age=62, occupation_class=2, annual_budget=5000)
     eligible, rejections = filter_eligible_candidates(catalog, senior_profile, estimator)
     eligible_ids = {p.id for p, _ in eligible}
@@ -55,11 +57,8 @@ def test_hard_filter_blocks_age_and_occupation_violations_on_12_products():
 
     for blocked in (1, 2, 3, 4, 10, 11, 12):
         assert blocked not in eligible_ids and blocked in rejected_ids
-    # 众安尊享e生(id=6, max_age=70) 与 星相守转保版(id=5, max_age=70) 应通过
-    assert 5 in eligible_ids
-    assert 6 in eligible_ids
+    assert 5 in eligible_ids and 6 in eligible_ids
 
-    # 30 岁 6 类高危职业：必须拦截所有 max_occupation_class <= 4 的产品，仅 6/7/8/9 合规
     high_risk_profile = RecUserProfile(age=30, occupation_class=6, annual_budget=15000)
     eligible_hr, _ = filter_eligible_candidates(catalog, high_risk_profile, estimator)
     assert all(p.max_occupation_class >= 6 for p, _ in eligible_hr)
@@ -126,7 +125,6 @@ def test_mmr_penalizes_duplicate_insurer_and_shared_clause():
         ),
     ]
     diversified = mmr_diversify(scored, lambda_param=0.7, top_k=3)
-    # 第二位优先选不同保司与不同条款的 p3，而非共享条款同保司的 p2
     assert diversified[0].product.id == 4
     assert diversified[1].product.id == 6
 
@@ -171,7 +169,6 @@ def test_full_recsys_pipeline_end_to_end_across_real_12_products():
     catalog = load_builtin_catalog()
     pipeline = RecSysPipeline()
 
-    # 1. 少儿配置（5岁，预算 1800，医疗+重疾+意外）
     kid_profile = RecUserProfile(
         age=5,
         annual_budget=1800,
@@ -184,7 +181,6 @@ def test_full_recsys_pipeline_end_to_end_across_real_12_products():
     assert set(kid_result.covered_categories) == {"medical", "critical_illness", "accident"}
     assert all(x.product.min_age <= 5 <= x.product.max_age for x in kid_result.selected)
 
-    # 2. 62岁老人（医疗，预算 3000）
     senior_profile = RecUserProfile(
         age=62,
         annual_budget=3000,
@@ -197,7 +193,6 @@ def test_full_recsys_pipeline_end_to_end_across_real_12_products():
     assert senior_result.covered_categories == ["medical"]
     assert all(x.product.min_age <= 62 <= x.product.max_age for x in senior_result.selected)
 
-    # 3. 32岁 6类高危职业请求医疗+意外：医疗命中 ID 6，真实库无6类意外险则如实标注 missing_categories
     hr_profile = RecUserProfile(
         age=32,
         occupation_class=6,
@@ -210,3 +205,79 @@ def test_full_recsys_pipeline_end_to_end_across_real_12_products():
     assert [x.product.id for x in hr_result.selected] == [6]
     assert "accident" in hr_result.missing_categories
     assert all(x.product.max_occupation_class >= 6 for x in hr_result.selected)
+
+
+def test_tokenize_and_build_profile_query_text():
+    assert tokenize_insurance_text("") == []
+    tokens = tokenize_insurance_text("6类职业保证续保20年医疗险")
+    assert "保证续保" in tokens and "20" in tokens and "医疗" in tokens
+
+    kid_q = build_profile_query_text(RecUserProfile(age=5, target_categories=["medical"]))
+    assert "少儿" in kid_q and "医疗险" in kid_q
+
+    hr_q = build_profile_query_text(RecUserProfile(age=55, occupation_class=6, has_social_security=False))
+    assert "中老年" in hr_q and "高危职业" in hr_q and "无社保" in hr_q
+
+
+def test_rrf_fuse_empty_and_single_channel_and_category_filter():
+    assert rrf_fuse({}) == []
+    single = rrf_fuse({"semantic": [6, 4, 2]}, top_k=2)
+    assert [pid for pid, _, _ in single] == [6, 4]
+
+    catalog = load_builtin_catalog()
+    estimator = PremiumEstimator()
+    eligible, rejections = filter_eligible_candidates(
+        catalog, RecUserProfile(age=30, target_categories=["accident"]), estimator
+    )
+    assert all(p.category == "accident" for p, _ in eligible)
+    assert any(any("不在目标范围" in msg for msg in r.reasons) for r in rejections)
+
+
+def test_scorer_factors_bounds_and_loose_underwriting_bonus():
+    assert score_candidates([], RecUserProfile(age=30), {}) == []
+
+    p_loose = ProductCandidate(
+        id=1, name="众民保百万医疗", clause_name="a.md", category="medical",
+        insurer="众安", health_disclosure_level="loose", coverage_tags=["无社保友好", "核保宽松"],
+    )
+    p_strict = ProductCandidate(
+        id=2, name="严格医疗", clause_name="b.md", category="medical",
+        insurer="友邦", health_disclosure_level="strict", coverage_tags=["百万医疗"],
+    )
+    profile = RecUserProfile(age=30, has_social_security=False, annual_budget=1000, query_text="三高结节无社保怎么买")
+    est1 = PremiumEstimate(product_id=1, annual_premium=300.0, pricing_mode="table")
+    est2 = PremiumEstimate(product_id=2, annual_premium=300.0, pricing_mode="table")
+
+    scored = score_candidates([(p_strict, est2), (p_loose, est1)], profile, {1: 0.05, 2: 0.05})
+    assert scored[0].product.id == 1
+    for item in scored:
+        assert 0.0 <= item.scores.total_score <= 1.0
+        assert 0.0 <= item.scores.profile_fit <= 1.0
+
+    tags = extract_query_preference_tags(RecUserProfile(age=30, preferences=["外购药"], query_text="想要外购药和0免赔"))
+    assert tags == ["外购药", "0免赔"]
+
+
+def test_mmr_and_portfolio_empty_and_unlimited_budget():
+    assert mmr_diversify([]) == []
+    empty_port = optimize_budget_portfolio([], RecUserProfile(age=30, target_categories=["medical", "accident"]))
+    assert empty_port.selected == []
+    assert empty_port.missing_categories == ["medical", "accident"]
+
+    cand = ScoredCandidate(
+        product=ProductCandidate(id=6, name="尊享e生", clause_name="6.md", category="medical", insurer="众安"),
+        estimate=PremiumEstimate(product_id=6, annual_premium=318.0, pricing_mode="table"),
+        scores=ScoreBreakdown(semantic_rrf=0.9, profile_fit=0.9, coverage_tag_match=0.9, budget_efficiency=0.9, clause_quality=0.9, total_score=0.9),
+    )
+    assert len(mmr_diversify([cand], lambda_param=1.0, top_k=1)) == 1
+    unbounded = optimize_budget_portfolio([cand], RecUserProfile(age=30, annual_budget=0, target_categories=["medical"]))
+    assert unbounded.within_budget is True
+    assert unbounded.selected[0].product.id == 6
+
+
+def test_builtin_12_products_catalog_invariants():
+    catalog = load_builtin_catalog()
+    assert len(catalog) == 12
+    assert [p.id for p in catalog] == list(range(1, 13))
+    assert all(p.min_age <= p.max_age and 1 <= p.max_occupation_class <= 6 for p in catalog)
+    assert all(p.has_clause for p in catalog)

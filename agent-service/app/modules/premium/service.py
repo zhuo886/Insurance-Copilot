@@ -58,8 +58,9 @@ def _parse_occupation_class(val: Any) -> int:
     s = str(val or "1").strip()
     if "-" in s:
         tail = s.split("-")[-1]
-        if tail.isdigit():
-            return max(1, min(6, int(tail)))
+        tail_digits = "".join(ch for ch in tail if ch.isdigit())
+        if tail_digits:
+            return max(1, min(6, int(tail_digits)))
     digits = "".join(ch for ch in s if ch.isdigit())
     return max(1, min(6, int(digits))) if digits else 1
 

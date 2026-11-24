@@ -4,7 +4,7 @@
 
 **LangGraph 混合双子图编排 · 12 款真实备案产品与官方费率表 · 跨产品混合 RAG · 四阶段搜推与确定性护栏**
 
-<p align="center"><img src="https://img.shields.io/badge/Python-3.14-3776AB" alt="Python"> <img src="https://img.shields.io/badge/Agent-LangGraph%201.2-1C3C3C" alt="LangGraph"> <img src="https://img.shields.io/badge/API-FastAPI%20%2B%20SSE-009688" alt="FastAPI"> <img src="https://img.shields.io/badge/VectorDB-Milvus%203.0-00A1EA" alt="Milvus"> <img src="https://img.shields.io/badge/pytest-26%20passed-4E9A06" alt="Tests"> <img src="https://github.com/zhuo886/Insurance-Copilot/actions/workflows/ci.yml/badge.svg" alt="CI"> <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></p>
+<p align="center"><img src="https://img.shields.io/badge/Python-3.14-3776AB" alt="Python"> <img src="https://img.shields.io/badge/Agent-LangGraph%201.2-1C3C3C" alt="LangGraph"> <img src="https://img.shields.io/badge/API-FastAPI%20%2B%20SSE-009688" alt="FastAPI"> <img src="https://img.shields.io/badge/VectorDB-Milvus%203.0-00A1EA" alt="Milvus"> <img src="https://img.shields.io/badge/pytest-179%20passed-4E9A06" alt="Tests"> <img src="https://github.com/zhuo886/Insurance-Copilot/actions/workflows/ci.yml/badge.svg" alt="CI"> <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></p>
 
 [项目简介](#项目简介) · [核心工作与结果](#核心工作与结果) · [功能与设计](#功能与设计) · [系统架构](#系统架构) · [快速开始](#快速开始) · [验证与评测](#验证与评测) · [代码与文档](#代码与文档)
 
@@ -67,7 +67,7 @@
 
 | 维度 | 指标 | 结果 | 分子 / 分母与对照口径 |
 | :--- | :--- | :--- | :--- |
-| 工程 | 离线回归与构建 | **`26 passed`**（`7.45s`，0 网络） | 6 个后端测试模块 + 前端类型检查与构建 |
+| 工程 | 离线回归与构建 | **`179 passed`**（`8.01s`，0 网络） | 11 个后端测试模块 + 前端类型检查与构建 |
 | 搜推漏斗 | Recall@3 / NDCG@5 | **`71.44%` / `0.9204`** | 30 场景 × 12 产品离线基准（SQL 基线 `48.80%` / `0.6294`） |
 | 搜推漏斗 | 承保合规率 / 预算满足率 | **`100.00%` / `100.00%`** | 同批 30 场景（SQL 基线 `20.00%` / `76.67%`） |
 | 搜推效率 | 排序 P95 耗时 / Token | **`6.74 ms` / `0.0`** | 对比纯大模型直排 `1807.89 ms` / `1288.6`（耗时 **-99.63%**） |
@@ -208,18 +208,23 @@ npm run dev
 ### A. 工程验证（离线、可复现、0 网络）
 
 ```bash
-cd agent-service && uv run pytest -v    # 26 passed in 7.45s（实测）
+cd agent-service && uv run pytest -v    # 179 passed in 8.01s（实测）
 cd frontend && npm run build            # tsc -b && vite build 0 错误通过
 ```
 
 | 层次 | 覆盖内容 | 对应测试模块 |
 | :--- | :--- | :--- |
+| 认证与安全 | Argon2 口令校验、访问/刷新令牌类型隔离、过期/伪造拦截与可选鉴权 | [test_auth_security.py](agent-service/tests/test_auth_security.py) |
 | 状态与契约 | 跨轮用户画像增量合并、多类型附加卡片聚合、审批暂停态解析与请求契约 | [test_schemas_and_state.py](agent-service/tests/test_schemas_and_state.py) |
-| 定价引擎 | `11/12` 官方精算费率表查表命中、缺表产品显式估算标识与免责声明校验 | [test_pricing.py](agent-service/tests/test_pricing.py) |
-| 搜推漏斗 | 多路融合与险种配额、12 产品年龄/职业硬过滤、多样性抑制、预算分组背包优化 | [test_recsys_pipeline.py](agent-service/tests/test_recsys_pipeline.py) |
-| RAG 增强 | 保险术语口语改写去重、共享 PDF 父块去重、多品对比防霸榜、无条款拒编返回空 | [test_rag_enhancements.py](agent-service/tests/test_rag_enhancements.py) |
-| 编排与护栏 | 正则槽位抽取防误抓、伪引文与十六进制编号拦截、单次重试/强制清洗、理赔子图与审批恢复 | [test_agent_graph.py](agent-service/tests/test_agent_graph.py) |
-| 全栈端到端 | 注册登录与令牌刷新、产品与试算、方案转保单快照、理赔指引/PDF 下载、幂等下单与撤单 | [test_business_apis.py](agent-service/tests/test_business_apis.py) |
+| 意图与主图编排 | 寒暄直出与业务防误吞、5 路意图路由降级、转人工摘要与闲聊 3 轮熔断 | [test_intent_and_orchestrator.py](agent-service/tests/test_intent_and_orchestrator.py) |
+| 画像与确定性护栏 | 正则画像多维度抽取、思维标签清理、各类伪引文拦截与方案年龄/职业/预算核验 | [test_guardrails_and_profile.py](agent-service/tests/test_guardrails_and_profile.py) |
+| 子图流与审批闭环 | 顾问/理赔双子图单次纠偏、强制清洗兜底、空检索豁免与跨轮重置、嵌套审批恢复 | [test_agent_graph.py](agent-service/tests/test_agent_graph.py) |
+| 流式缓冲与会话 | SSE 流式缓冲扣留与重试清洗、防状态覆写保护、会话线程增删改查与历史恢复 | [test_chat_sse_and_threads.py](agent-service/tests/test_chat_sse_and_threads.py) |
+| 定价引擎 | 12 款真实产品官方查表与缺表估算、保额线性缩放、职业范围与前端参数解析 | [test_pricing.py](agent-service/tests/test_pricing.py) |
+| 搜推漏斗 | 多路融合、12 产品承保红线硬过滤、5 维精排边界、多样性重排与预算分组背包 | [test_recsys_pipeline.py](agent-service/tests/test_recsys_pipeline.py) |
+| 混合 RAG 检索 | 全词典同义词改写、大模型改写/HyDE 异常回退、共享路径去重、并行对比与策略路由 | [test_rag_enhancements.py](agent-service/tests/test_rag_enhancements.py) |
+| 全栈接口与越权隔离 | 注册登录/产品试算/方案保单/四险种理赔指引与 PDF/幂等下单撤单及跨用户 404 | [test_business_apis.py](agent-service/tests/test_business_apis.py) |
+| 评测指标自检 | 搜推召回/NDCG/MRR、RAG 重复率/对比完整率、Agent 工具产物抽取与指标聚合 | [test_eval_metrics.py](agent-service/tests/test_eval_metrics.py) |
 
 ### B. 效果评测（离线基准 + 真实联机消融）
 
@@ -274,7 +279,7 @@ cd frontend && npm run build            # tsc -b && vite build 0 错误通过
 
 ```bash
 cd agent-service
-uv run pytest -v                              # 1. 离线 26 项单元与全接口回归（0 Docker，0 Token）
+uv run pytest -v                              # 1. 离线 179 项单元与全接口回归（0 Docker，0 Token）
 uv run python scripts/eval/eval_recsys.py     # 2. 搜推漏斗离线消融（加 --with-llm-listwise 含 LLM 竞品）
 uv run python scripts/eval/eval_rag.py        # 3. 需 Docker：跨产品混合 RAG 7 路单变量消融
 uv run python scripts/eval/eval_agent.py      # 4. 需 Docker：Agent 4 套架构 + qwen-max 异构评审
@@ -307,7 +312,7 @@ hm-insurance/
 │   │   └── assets/                       # 标准理赔申请表 PDF 模板
 │   ├── scripts/                          # 费率解析、入库初始化、索引构建与三项评测脚本
 │   ├── reports/                          # 搜推 / RAG / Agent 评测报告与原始 JSON 结果
-│   └── tests/                            # 6 个测试模块（26 条纯离线单元与端到端回归用例）
+│   └── tests/                            # 11 个测试模块（179 条纯离线单元、契约与端到端回归用例）
 └── frontend/                             # React + TypeScript + Ant Design 5 私行精简前端
 ```
 

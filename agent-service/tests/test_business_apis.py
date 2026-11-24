@@ -4,13 +4,20 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.common.auth import create_refresh_token, hash_password
+from app.common.auth import create_access_token, create_refresh_token, hash_password
 from app.infra.database import get_session
 from app.main import app
 from app.modules.auth.models import User
-from app.modules.insurance_plan.models import Claim, InsurancePlan, InsurancePlanItem, Policy, PremiumQuote
+from app.modules.insurance_plan.models import (
+    Claim,
+    InsurancePlan,
+    InsurancePlanItem,
+    Policy,
+    PremiumQuote,
+)
 from app.modules.order.models import Order
 from app.modules.product.catalog_data import load_builtin_catalog
 from app.modules.product.models import Product, ProductFeature
@@ -62,6 +69,14 @@ def _build_inmemory_state():
         display_name="演示用户",
         status="active",
     )
+    other_user = User(
+        id=2,
+        username="other_user",
+        email="other@example.com",
+        password_hash=hash_password("654321"),
+        display_name="其他用户",
+        status="active",
+    )
 
     plan_id = uuid4()
     item_id = uuid4()
@@ -90,32 +105,45 @@ def _build_inmemory_state():
         updated_at=now,
     )
 
-    policy_id = uuid4()
-    policy = Policy(
-        id=policy_id,
-        user_id=1,
-        product_id=6,
-        policy_number="POL-DEMO-2026-0001",
-        application_no="APP-DEMO-2026-0001",
-        status="active",
-        effective_at=now - timedelta(days=30),
-        expires_at=now + timedelta(days=335),
-        holder_name="张三",
-        insured_name="张三",
-        insured_id_no_masked="110101********1234",
-        insured_phone="138****8888",
-        coverage_amount=Decimal("1000000.00"),
-        premium_amount=Decimal("318.00"),
-        payment_frequency="annual",
-        beneficiary={"type": "法定受益人"},
-        coverage_snapshot={"category": "medical"},
-    )
+    # 覆盖医疗 / 重疾 / 意外 / 寿险四类产品的已生效保单
+    pol_medical_id = uuid4()
+    pol_ci_id = uuid4()
+    pol_acc_id = uuid4()
+    pol_life_id = uuid4()
+
+    def _make_pol(pid_uuid, product_id: int, num: str, cov: str, prem: str) -> Policy:
+        return Policy(
+            id=pid_uuid,
+            user_id=1,
+            product_id=product_id,
+            policy_number=num,
+            application_no=f"APP-{num}",
+            status="active",
+            effective_at=now - timedelta(days=30),
+            expires_at=now + timedelta(days=335),
+            holder_name="张三",
+            insured_name="张三",
+            insured_id_no_masked="110101********1234",
+            insured_phone="138****8888",
+            coverage_amount=Decimal(cov),
+            premium_amount=Decimal(prem),
+            payment_frequency="annual",
+            beneficiary={"type": "法定受益人"},
+            coverage_snapshot={"category": products[product_id].category},
+        )
+
+    policies = {
+        pol_medical_id: _make_pol(pol_medical_id, 6, "POL-MED-001", "1000000.00", "318.00"),
+        pol_ci_id: _make_pol(pol_ci_id, 2, "POL-CI-002", "500000.00", "1824.00"),
+        pol_acc_id: _make_pol(pol_acc_id, 10, "POL-ACC-003", "1000000.00", "136.00"),
+        pol_life_id: _make_pol(pol_life_id, 7, "POL-LIFE-004", "500000.00", "10000.00"),
+    }
 
     claim_id = uuid4()
     claim = Claim(
         id=claim_id,
         user_id=1,
-        policy_id=policy_id,
+        policy_id=pol_medical_id,
         product_id=6,
         claim_number="CLM-DEMO-001",
         claim_type="medical",
@@ -127,14 +155,23 @@ def _build_inmemory_state():
     )
 
     return {
-        "next_user_id": 2,
-        "users": {1: demo_user},
+        "next_user_id": 3,
+        "users": {1: demo_user, 2: other_user},
         "products": products,
         "features": features,
         "plans": {plan_id: plan},
         "plan_items": {item_id: plan_item},
-        "policies": {policy_id: policy},
+        "policies": policies,
+        "policy_ids": {
+            "medical": pol_medical_id,
+            "critical_illness": pol_ci_id,
+            "accident": pol_acc_id,
+            "life": pol_life_id,
+        },
         "claims": {claim_id: claim},
+        "claim_id": claim_id,
+        "plan_id": plan_id,
+        "item_id": item_id,
         "quotes": {},
         "orders": {},
         "now": now,
@@ -157,7 +194,8 @@ def _dummy_session():
     )
 
 
-async def test_auth_products_premium_plans_policies_claims_and_orders_end_to_end(monkeypatch):
+@pytest.fixture
+async def api_env(monkeypatch):
     state = _build_inmemory_state()
 
     async def override_get_session():
@@ -165,8 +203,12 @@ async def test_auth_products_premium_plans_policies_claims_and_orders_end_to_end
 
     app.dependency_overrides[get_session] = override_get_session
 
-    # ---- AuthRepository monkeypatch ----
     from app.modules.auth.repository import AuthRepository
+    from app.modules.claim.repository import ClaimRepository
+    from app.modules.insurance_plan.repository import InsurancePlanRepository
+    from app.modules.order.repository import OrderRepository
+    from app.modules.policy.repository import PolicyRepository
+    from app.modules.product.repository import ProductRepository
 
     async def fake_find_user_id(self, uid: int):
         return state["users"].get(uid)
@@ -191,9 +233,6 @@ async def test_auth_products_premium_plans_policies_claims_and_orders_end_to_end
     monkeypatch.setattr(AuthRepository, "exists_username_or_email", fake_exists_user)
     monkeypatch.setattr(AuthRepository, "add_user", fake_add_user)
 
-    # ---- ProductRepository monkeypatch ----
-    from app.modules.product.repository import ProductRepository
-
     async def fake_prod_by_id(self, pid: int):
         return state["products"].get(pid)
 
@@ -204,12 +243,25 @@ async def test_auth_products_premium_plans_policies_claims_and_orders_end_to_end
     async def fake_active_schema(self, pid: int, scenario: str = "premium_by_coverage"):
         return None
 
+    async def fake_prod_by_cat(self, category: str | None = None, featured_only: bool = True):
+        items = [p for p in state["products"].values() if p.status == "active"]
+        if category:
+            items = [p for p in items if p.category == category]
+        if featured_only:
+            items = [p for p in items if state["features"][p.id].is_featured]
+        return sorted(items, key=lambda p: p.id)
+
+    async def fake_prod_limited(self, category: str, premium_min: Decimal | None, limit: int):
+        items = [p for p in state["products"].values() if p.category == category and p.status == "active"]
+        if premium_min is not None:
+            items = [p for p in items if p.min_premium is not None and p.min_premium < premium_min]
+        return sorted(items, key=lambda p: (p.min_premium or Decimal("0"), p.id))[:limit]
+
     monkeypatch.setattr(ProductRepository, "find_by_id", fake_prod_by_id)
     monkeypatch.setattr(ProductRepository, "find_with_feature_by_id", fake_prod_feat)
     monkeypatch.setattr(ProductRepository, "find_active_pricing_schema", fake_active_schema)
-
-    # ---- InsurancePlanRepository monkeypatch ----
-    from app.modules.insurance_plan.repository import InsurancePlanRepository
+    monkeypatch.setattr(ProductRepository, "find_by_category", fake_prod_by_cat)
+    monkeypatch.setattr(ProductRepository, "find_limited_by_category", fake_prod_limited)
 
     async def fake_list_plans(self, uid: int):
         return [p for p in state["plans"].values() if p.user_id == uid]
@@ -284,11 +336,6 @@ async def test_auth_products_premium_plans_policies_claims_and_orders_end_to_end
     monkeypatch.setattr(InsurancePlanRepository, "get_user_display_name", fake_user_name)
     monkeypatch.setattr(InsurancePlanRepository, "find_rate_table_items", fake_rate_tables)
 
-    # ---- PolicyRepository / ClaimRepository / OrderRepository monkeypatch ----
-    from app.modules.policy.repository import PolicyRepository
-    from app.modules.claim.repository import ClaimRepository
-    from app.modules.order.repository import OrderRepository
-
     async def fake_list_policies(self, uid: int, status: str | None = "active"):
         return [
             (pol, state["products"][pol.product_id])
@@ -351,164 +398,248 @@ async def test_auth_products_premium_plans_policies_claims_and_orders_end_to_end
 
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            # 1. 未鉴权拦截验证
-            assert (await client.get("/api/v1/policies")).status_code == 401
-            assert (await client.get("/api/v1/insurance-plans")).status_code == 401
-            assert (await client.get("/api/v1/claims")).status_code == 401
-            assert (await client.get("/api/v1/orders")).status_code == 401
-
-            # 2. 注册 & 查重 & 参数校验
-            bad_reg = await client.post("/api/v1/auth/register", json={"username": "", "email": "bad", "password": "12"})
-            assert bad_reg.status_code == 400
-            assert bad_reg.json()["code"] == "INVALID_REGISTER_REQUEST"
-
-            dup_reg = await client.post(
-                "/api/v1/auth/register",
-                json={"username": "demo", "email": "new@example.com", "password": "secret123"},
-            )
-            assert dup_reg.status_code == 409
-            assert dup_reg.json()["code"] == "USER_EXISTS"
-
-            reg_ok = await client.post(
-                "/api/v1/auth/register",
-                json={"username": "alice", "email": "alice@example.com", "password": "secret123"},
-            )
-            assert reg_ok.status_code == 200
-            assert reg_ok.json()["user"]["username"] == "alice"
-
-            # 3. 登录 + Refresh Cookie + 退出
-            bad_login = await client.post("/api/v1/auth/login", json={"username": "demo", "password": "wrong"})
-            assert bad_login.status_code == 400
-            assert bad_login.json()["code"] == "INVALID_CREDENTIALS"
-
-            login_ok = await client.post("/api/v1/auth/login", json={"username": "demo", "password": "123456"})
-            assert login_ok.status_code == 200
-            token = login_ok.json()["access_token"]
-            auth_headers = {"Authorization": f"Bearer {token}"}
-            assert "refresh_token" in login_ok.cookies
-
-            ref_ok = await client.post("/api/v1/auth/refresh", cookies={"refresh_token": create_refresh_token(1)})
-            assert ref_ok.status_code == 200
-            assert ref_ok.json()["user"]["id"] == 1
-
-            logout_ok = await client.post("/api/v1/auth/logout")
-            assert logout_ok.status_code == 200 and logout_ok.json() == {"ok": True}
-
-            # 4. 产品详情 & 试算模板
-            p6 = await client.get("/api/v1/products/6")
-            assert p6.status_code == 200 and p6.json()["name"] == "众安尊享e生百万医疗险2026版"
-            assert (await client.get("/api/v1/products/999")).status_code == 404
-
-            s6 = await client.get("/api/v1/products/6/pricing-schema")
-            assert s6.status_code == 200 and len(s6.json()["schema"]["fields"]) >= 4
-            assert (await client.get("/api/v1/products/999/pricing-schema")).status_code == 404
-
-            # 5. 保费试算（真实官方 PDF 表 & ID=1 降级估算 & 资格校验）
-            calc_ok = await client.post(
-                "/api/v1/premium/calculate",
-                headers=auth_headers,
-                json={
-                    "product_id": 6,
-                    "answers": {
-                        "plan_code": "standard",
-                        "insured.age": 30,
-                        "insured.gender": "male",
-                        "insured.social_security": "yes",
-                    },
-                },
-            )
-            assert calc_ok.status_code == 200
-            calc_body = calc_ok.json()
-            assert calc_body["pricing_mode"] == "table"
-            assert calc_body["annual_premium"] == "318.00"
-            quote_id = calc_body["quote_id"]
-
-            calc_est = await client.post(
-                "/api/v1/premium/calculate",
-                json={"product_id": 1, "answers": {"insured.age": 5, "insured.gender": "female"}},
-            )
-            assert calc_est.status_code == 200
-            assert calc_est.json()["pricing_mode"] == "estimated_formula"
-
-            calc_ineligible = await client.post(
-                "/api/v1/premium/calculate",
-                json={"product_id": 2, "answers": {"insured.age": 62}},
-            )
-            assert calc_ineligible.status_code == 400
-            assert calc_ineligible.json()["code"] == "INVALID_PRICING_PARAMS"
-
-            # 6. 保险方案列表 / 当前 / 更新保存 / 标记已投保生成 V14 保单快照
-            plans_list = await client.get("/api/v1/insurance-plans", headers=auth_headers)
-            assert plans_list.status_code == 200 and len(plans_list.json()["items"]) == 1
-
-            cur_plan = await client.get("/api/v1/insurance-plans/current", headers=auth_headers)
-            assert cur_plan.status_code == 200
-
-            upd_plan = await client.put(
-                "/api/v1/insurance-plans/current",
-                headers=auth_headers,
-                json={
-                    "plan_name": "升级保障方案",
-                    "summary": "医疗+意外组合",
-                    "budget_note": "年预算参考",
-                    "insured_profile": {"name": "张三", "age": 30, "budget": 2000},
-                    "items": [
-                        {"product_id": 4, "category": "medical", "priority": 1, "annual_premium_budget": 184}
-                    ],
-                },
-            )
-            assert upd_plan.status_code == 200
-            assert upd_plan.json()["version"] == 2
-            new_item_id = upd_plan.json()["items"][0]["id"]
-            plan_id = upd_plan.json()["id"]
-
-            insured_res = await client.patch(
-                f"/api/v1/insurance-plans/{plan_id}/items/{new_item_id}/insured",
-                headers=auth_headers,
-            )
-            assert insured_res.status_code == 200
-            assert insured_res.json()["status"] == "insured"
-
-            # 7. 保单与理赔/理赔指引/PDF申请表下载
-            pols = await client.get("/api/v1/policies?status=active", headers=auth_headers)
-            assert pols.status_code == 200 and len(pols.json()["items"]) == 2
-            first_pol_id = pols.json()["items"][0]["id"]
-            assert (await client.get(f"/api/v1/policies/{first_pol_id}", headers=auth_headers)).status_code == 200
-
-            claims = await client.get("/api/v1/claims?status=reviewing", headers=auth_headers)
-            assert claims.status_code == 200 and claims.json()["items"][0]["status_message"]
-
-            guide = await client.get(f"/api/v1/claim-guides/{first_pol_id}", headers=auth_headers)
-            assert guide.status_code == 200
-            assert guide.json()["download_uri"] == "/api/v1/claim-guides/application-form"
-            assert len(guide.json()["steps"]) >= 3
-
-            pdf_resp = await client.get("/api/v1/claim-guides/application-form")
-            assert pdf_resp.status_code == 200
-            assert pdf_resp.headers["content-type"].startswith("application/pdf")
-            assert pdf_resp.content.startswith(b"%PDF-")
-
-            # 8. 订单幂等创建 / 查询 / 取消
-            ord_res1 = await client.post(
-                "/api/v1/orders",
-                headers=auth_headers,
-                json={"quoteIds": [quote_id], "idempotency_key": "idem-001"},
-            )
-            ord_res2 = await client.post(
-                "/api/v1/orders",
-                headers=auth_headers,
-                json={"quote_ids": [quote_id], "idempotency_key": "idem-001"},
-            )
-            assert ord_res1.status_code == 200 and ord_res2.status_code == 200
-            assert ord_res1.json()["id"] == ord_res2.json()["id"]
-            assert ord_res1.json()["total_premium"] == "318.00"
-            order_id = ord_res1.json()["id"]
-
-            ord_list = await client.get("/api/v1/orders", headers=auth_headers)
-            assert ord_list.status_code == 200 and len(ord_list.json()["items"]) == 1
-
-            cancel_res = await client.post(f"/api/v1/orders/{order_id}/cancel", headers=auth_headers)
-            assert cancel_res.status_code == 200
-            assert cancel_res.json()["status"] == "cancelled"
+            yield client, state
     finally:
         app.dependency_overrides.clear()
+
+
+def _auth_headers(user_id: int = 1) -> dict[str, str]:
+    return {"Authorization": f"Bearer {create_access_token(user_id)}"}
+
+
+async def test_health_check_endpoint(api_env):
+    client, _ = api_env
+    resp = await client.get("/healthy")
+    assert resp.status_code == 200 and resp.json() == {"status": "ok"}
+
+
+@pytest.mark.parametrize(
+    "path",
+    ["/api/v1/policies", "/api/v1/insurance-plans", "/api/v1/claims", "/api/v1/orders", "/api/v1/chat-threads"],
+)
+async def test_protected_endpoints_require_authentication(api_env, path: str):
+    client, _ = api_env
+    assert (await client.get(path)).status_code == 401
+
+
+async def test_auth_register_validation_duplicate_and_success(api_env):
+    client, _ = api_env
+    bad_reg = await client.post("/api/v1/auth/register", json={"username": "", "email": "bad", "password": "12"})
+    assert bad_reg.status_code == 400 and bad_reg.json()["code"] == "INVALID_REGISTER_REQUEST"
+
+    dup_reg = await client.post(
+        "/api/v1/auth/register",
+        json={"username": "demo", "email": "new@example.com", "password": "secret123"},
+    )
+    assert dup_reg.status_code == 409 and dup_reg.json()["code"] == "USER_EXISTS"
+
+    reg_ok = await client.post(
+        "/api/v1/auth/register",
+        json={"username": "alice", "email": "alice@example.com", "password": "secret123"},
+    )
+    assert reg_ok.status_code == 200 and reg_ok.json()["user"]["username"] == "alice"
+
+
+async def test_auth_login_refresh_and_logout_lifecycle(api_env):
+    client, _ = api_env
+    bad_login = await client.post("/api/v1/auth/login", json={"username": "demo", "password": "wrong"})
+    assert bad_login.status_code == 400 and bad_login.json()["code"] == "INVALID_CREDENTIALS"
+
+    login_ok = await client.post("/api/v1/auth/login", json={"username": "demo", "password": "123456"})
+    assert login_ok.status_code == 200
+    assert "refresh_token" in login_ok.cookies
+
+    # 清空 login_ok 写入 client cookie jar 的 refresh_token，验证无 Cookie 刷新返回 401
+    client.cookies.clear()
+    no_cookie_ref = await client.post("/api/v1/auth/refresh")
+    assert no_cookie_ref.status_code == 401 and no_cookie_ref.json()["code"] == "INVALID_REFRESH_TOKEN"
+
+    ref_ok = await client.post("/api/v1/auth/refresh", cookies={"refresh_token": create_refresh_token(1)})
+    assert ref_ok.status_code == 200 and ref_ok.json()["user"]["id"] == 1
+
+    logout_ok = await client.post("/api/v1/auth/logout")
+    assert logout_ok.status_code == 200 and logout_ok.json() == {"ok": True}
+
+
+async def test_auth_inactive_user_blocked_on_login_and_refresh(api_env):
+    client, state = api_env
+    state["users"][2].status = "disabled"
+
+    bad_login = await client.post("/api/v1/auth/login", json={"username": "other_user", "password": "654321"})
+    assert bad_login.status_code == 400 and bad_login.json()["code"] == "INACTIVE_USER"
+
+    bad_refresh = await client.post("/api/v1/auth/refresh", cookies={"refresh_token": create_refresh_token(2)})
+    assert bad_refresh.status_code == 400 and bad_refresh.json()["code"] == "INACTIVE_USER"
+
+
+async def test_products_list_candidates_detail_and_pricing_schema(api_env):
+    client, _ = api_env
+    all_prods = await client.get("/api/v1/products")
+    assert all_prods.status_code == 200 and len(all_prods.json()) == 12
+
+    med_prods = await client.get("/api/v1/products?category=medical")
+    assert med_prods.status_code == 200 and all(p["category"] == "medical" for p in med_prods.json())
+
+    cands = await client.get("/api/v1/products/candidates?categories=medical&categories=accident&premium_min=500&limit_per_category=2")
+    assert cands.status_code == 200 and len(cands.json()) >= 2
+
+    p6 = await client.get("/api/v1/products/6")
+    assert p6.status_code == 200 and p6.json()["name"] == "众安尊享e生百万医疗险2026版"
+    assert (await client.get("/api/v1/products/999")).status_code == 404
+
+    s6 = await client.get("/api/v1/products/6/pricing-schema")
+    assert s6.status_code == 200 and len(s6.json()["schema"]["fields"]) >= 4
+    assert (await client.get("/api/v1/products/999/pricing-schema")).status_code == 404
+
+
+async def test_premium_calculate_table_estimated_and_validation_errors(api_env):
+    client, _ = api_env
+    calc_ok = await client.post(
+        "/api/v1/premium/calculate",
+        headers=_auth_headers(1),
+        json={
+            "product_id": 6,
+            "answers": {"plan_code": "standard", "insured.age": 30, "insured.gender": "male", "insured.social_security": "yes"},
+        },
+    )
+    assert calc_ok.status_code == 200
+    assert calc_ok.json()["pricing_mode"] == "table" and calc_ok.json()["annual_premium"] == "318.00"
+
+    calc_est = await client.post(
+        "/api/v1/premium/calculate",
+        json={"product_id": 1, "answers": {"insured.age": 5, "insured.gender": "female"}},
+    )
+    assert calc_est.status_code == 200 and calc_est.json()["pricing_mode"] == "estimated_formula"
+
+    calc_ineligible = await client.post(
+        "/api/v1/premium/calculate",
+        json={"product_id": 2, "answers": {"insured.age": 62}},
+    )
+    assert calc_ineligible.status_code == 400 and calc_ineligible.json()["code"] == "INVALID_PRICING_PARAMS"
+
+    missing_age = await client.post("/api/v1/premium/calculate", json={"product_id": 6, "answers": {}})
+    assert missing_age.status_code == 400
+
+    missing_prod = await client.post("/api/v1/premium/calculate", json={"product_id": 999, "answers": {"insured.age": 30}})
+    assert missing_prod.status_code == 404
+
+
+async def test_insurance_plan_crud_and_mark_insured_creates_policy(api_env):
+    client, state = api_env
+    headers = _auth_headers(1)
+
+    assert (await client.get("/api/v1/insurance-plans", headers=headers)).status_code == 200
+    assert (await client.get("/api/v1/insurance-plans/current", headers=headers)).status_code == 200
+    assert (await client.get(f"/api/v1/insurance-plans/{state['plan_id']}", headers=headers)).status_code == 200
+
+    upd_plan = await client.put(
+        "/api/v1/insurance-plans/current",
+        headers=headers,
+        json={
+            "plan_name": "升级保障方案",
+            "summary": "医疗+意外组合",
+            "budget_note": "年预算参考",
+            "insured_profile": {"name": "张三", "age": 30, "budget": 2000},
+            "items": [{"product_id": 4, "category": "medical", "priority": 1, "annual_premium_budget": 184}],
+        },
+    )
+    assert upd_plan.status_code == 200 and upd_plan.json()["version"] == 2
+    plan_id = upd_plan.json()["id"]
+    item_id = upd_plan.json()["items"][0]["id"]
+
+    insured_res = await client.patch(f"/api/v1/insurance-plans/{plan_id}/items/{item_id}/insured", headers=headers)
+    assert insured_res.status_code == 200 and insured_res.json()["status"] == "insured"
+    assert len(state["policies"]) == 5
+
+
+async def test_policies_claims_and_four_category_claim_guides(api_env):
+    client, state = api_env
+    headers = _auth_headers(1)
+
+    pols = await client.get("/api/v1/policies?status=active", headers=headers)
+    assert pols.status_code == 200 and len(pols.json()["items"]) == 4
+
+    med_pol_id = state["policy_ids"]["medical"]
+    detail = await client.get(f"/api/v1/policies/{med_pol_id}", headers=headers)
+    assert detail.status_code == 200 and detail.json()["policy_number"] == "POL-MED-001"
+
+    claims = await client.get("/api/v1/claims?status=reviewing", headers=headers)
+    assert claims.status_code == 200 and claims.json()["items"][0]["status_message"]
+    claim_detail = await client.get(f"/api/v1/claims/{state['claim_id']}", headers=headers)
+    assert claim_detail.status_code == 200 and claim_detail.json()["claim_number"] == "CLM-DEMO-001"
+
+    # 四大险种各自理赔指南材料清单不同且均可生成
+    for pid_uuid in state["policy_ids"].values():
+        guide = await client.get(f"/api/v1/claim-guides/{pid_uuid}", headers=headers)
+        assert guide.status_code == 200
+        assert guide.json()["download_uri"] == "/api/v1/claim-guides/application-form"
+        assert len(guide.json()["materials"]) >= 3
+
+    pdf_resp = await client.get("/api/v1/claim-guides/application-form")
+    assert pdf_resp.status_code == 200
+    assert pdf_resp.headers["content-type"].startswith("application/pdf")
+    assert pdf_resp.content.startswith(b"%PDF-")
+
+
+async def test_orders_idempotency_invalid_quote_and_cancellation(api_env):
+    client, _ = api_env
+    headers = _auth_headers(1)
+
+    calc = await client.post(
+        "/api/v1/premium/calculate",
+        headers=headers,
+        json={"product_id": 6, "answers": {"insured.age": 30, "insured.social_security": "yes"}},
+    )
+    quote_id = calc.json()["quote_id"]
+
+    bad_quote = await client.post(
+        "/api/v1/orders",
+        headers=headers,
+        json={"quote_ids": [str(uuid4())], "idempotency_key": "bad-quote"},
+    )
+    assert bad_quote.status_code == 404 and bad_quote.json()["code"] == "QUOTE_NOT_FOUND"
+
+    ord1 = await client.post(
+        "/api/v1/orders",
+        headers=headers,
+        json={"quoteIds": [quote_id], "idempotency_key": "idem-001"},
+    )
+    ord2 = await client.post(
+        "/api/v1/orders",
+        headers=headers,
+        json={"quote_ids": [quote_id], "idempotency_key": "idem-001"},
+    )
+    assert ord1.status_code == 200 and ord2.status_code == 200
+    assert ord1.json()["id"] == ord2.json()["id"] and ord1.json()["total_premium"] == "318.00"
+    order_id = ord1.json()["id"]
+
+    assert (await client.get(f"/api/v1/orders/{order_id}", headers=headers)).status_code == 200
+    assert len((await client.get("/api/v1/orders", headers=headers)).json()["items"]) == 1
+
+    cancel_res = await client.post(f"/api/v1/orders/{order_id}/cancel", headers=headers)
+    assert cancel_res.status_code == 200 and cancel_res.json()["status"] == "cancelled"
+
+
+async def test_cross_user_resource_isolation_returns_404(api_env):
+    client, state = api_env
+    user1_headers = _auth_headers(1)
+    user2_headers = _auth_headers(2)
+
+    calc = await client.post(
+        "/api/v1/premium/calculate",
+        headers=user1_headers,
+        json={"product_id": 6, "answers": {"insured.age": 30}},
+    )
+    order = await client.post(
+        "/api/v1/orders",
+        headers=user1_headers,
+        json={"quote_ids": [calc.json()["quote_id"]], "idempotency_key": "u1-only"},
+    )
+    order_id = order.json()["id"]
+
+    assert (await client.get(f"/api/v1/insurance-plans/{state['plan_id']}", headers=user2_headers)).status_code == 404
+    assert (await client.get(f"/api/v1/policies/{state['policy_ids']['medical']}", headers=user2_headers)).status_code == 404
+    assert (await client.get(f"/api/v1/claims/{state['claim_id']}", headers=user2_headers)).status_code == 404
+    assert (await client.get(f"/api/v1/claim-guides/{state['policy_ids']['medical']}", headers=user2_headers)).status_code == 404
+    assert (await client.get(f"/api/v1/orders/{order_id}", headers=user2_headers)).status_code == 404
+    assert (await client.post(f"/api/v1/orders/{order_id}/cancel", headers=user2_headers)).status_code == 404
