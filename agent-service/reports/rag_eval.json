@@ -1,52 +1,79 @@
 [
   {
     "strategy": "1. Dense Only (向量单路)",
+    "strategy_key": "dense_only",
     "cases": 45,
     "recall_at_3": 80.74,
     "recall_at_5": 84.07,
     "mrr": 0.7685,
     "compare_completeness": 30.0,
     "duplicate_rate": 3.56,
-    "p95_latency_ms": 489.97
+    "p95_latency_ms": 604.74
   },
   {
-    "strategy": "2. Hybrid (Dense+BM25 RRF)",
+    "strategy": "2. + BM25 RRF (Hybrid 无改写无重排)",
+    "strategy_key": "hybrid_no_rerank",
     "cases": 45,
     "recall_at_3": 71.85,
     "recall_at_5": 77.41,
     "mrr": 0.6811,
     "compare_completeness": 20.0,
     "duplicate_rate": 4.74,
-    "p95_latency_ms": 227.07
+    "p95_latency_ms": 260.02
   },
   {
-    "strategy": "3. Hybrid + gte-rerank-v2 (单次查询)",
+    "strategy": "3. + 领域词典改写 (Hybrid+Rewrite)",
+    "strategy_key": "hybrid_rewrite_no_rerank",
     "cases": 45,
-    "recall_at_3": 80.74,
-    "recall_at_5": 84.07,
-    "mrr": 0.7907,
-    "compare_completeness": 20.0,
-    "duplicate_rate": 5.48,
-    "p95_latency_ms": 1437.33
+    "recall_at_3": 79.26,
+    "recall_at_5": 87.04,
+    "mrr": 0.7915,
+    "compare_completeness": 40.0,
+    "duplicate_rate": 5.3,
+    "p95_latency_ms": 393.66
   },
   {
-    "strategy": "4. HyDE + Hybrid + Rerank (竞品)",
+    "strategy": "4. + 并行定额与路径去重 (无Rerank)",
+    "strategy_key": "hybrid_rewrite_parallel_dedup",
     "cases": 45,
-    "recall_at_3": 82.96,
-    "recall_at_5": 89.63,
-    "mrr": 0.8248,
-    "compare_completeness": 50.0,
-    "duplicate_rate": 5.04,
-    "p95_latency_ms": 3503.74
+    "recall_at_3": 82.22,
+    "recall_at_5": 88.89,
+    "mrr": 0.7667,
+    "compare_completeness": 80.0,
+    "duplicate_rate": 0.0,
+    "p95_latency_ms": 280.56
   },
   {
-    "strategy": "5. 术语改写 + 并行定额 + 去重 + Rerank (最终方案)",
+    "strategy": "5. + gte-rerank-v2 重排 (最终方案)",
+    "strategy_key": "full_enhanced",
     "cases": 45,
     "recall_at_3": 95.56,
     "recall_at_5": 96.67,
     "mrr": 0.9074,
     "compare_completeness": 90.0,
     "duplicate_rate": 0.0,
-    "p95_latency_ms": 1919.44
+    "p95_latency_ms": 1642.75
+  },
+  {
+    "strategy": "对照 A. Hybrid+Rerank (单次查询)",
+    "strategy_key": "hybrid_rerank_single",
+    "cases": 45,
+    "recall_at_3": 80.74,
+    "recall_at_5": 84.07,
+    "mrr": 0.7907,
+    "compare_completeness": 20.0,
+    "duplicate_rate": 5.48,
+    "p95_latency_ms": 1050.69
+  },
+  {
+    "strategy": "对照 B. HyDE+Hybrid+Rerank (竞品)",
+    "strategy_key": "hyde_hybrid_rerank",
+    "cases": 45,
+    "recall_at_3": 86.3,
+    "recall_at_5": 87.41,
+    "mrr": 0.8333,
+    "compare_completeness": 50.0,
+    "duplicate_rate": 5.74,
+    "p95_latency_ms": 3584.18
   }
 ]

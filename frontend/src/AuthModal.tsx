@@ -1,4 +1,4 @@
-import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons';
+import { LockOutlined, MailOutlined, SafetyCertificateOutlined, UserOutlined } from '@ant-design/icons';
 import { Alert, Form, Input, Modal, Tabs } from 'antd';
 import { useState } from 'react';
 
@@ -73,8 +73,11 @@ export function AuthModal({
       centered
     >
       <div className="auth-modal__header">
+        <div className="auth-modal__emblem">
+          <SafetyCertificateOutlined />
+        </div>
         <h2>欢迎来到安心保</h2>
-        <p>登录或注册后即可使用智能顾问、方案规划与保单服务（演示账号：demo / 123456）</p>
+        <p>登录后即可使用智能顾问与保单服务（演示账号：demo / 123456）</p>
       </div>
 
       <Tabs

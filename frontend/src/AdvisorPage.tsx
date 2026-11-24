@@ -13,6 +13,7 @@ import {
   StopOutlined,
 } from '@ant-design/icons';
 import { Alert, Button, Drawer, Empty, Input, Modal, Popconfirm, Spin } from 'antd';
+import type { TextAreaRef } from 'antd/es/input/TextArea';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { attachInfoToLastAssistantMessage, normalizeAdditionalInfo } from './additionalInfo';
@@ -44,6 +45,24 @@ interface ApplyProductTarget {
   itemId: string;
 }
 
+const SCENARIO_PROMPTS = [
+  {
+    tag: '方案规划',
+    title: '按预算推荐保障组合',
+    prompt: '30岁男性有医保，年预算3500元，请推荐医疗险和重疾险组合',
+  },
+  {
+    tag: '条款对比',
+    title: '比对免赔额与外购药',
+    prompt: '对比星相守2号和众安尊享e生2026版的免赔额与外购药条款',
+  },
+  {
+    tag: '保单服务',
+    title: '查询保单与理赔指南',
+    prompt: '帮我查一下当前名下的生效保单和理赔申请指南',
+  },
+];
+
 export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct }: AdvisorPageProps) {
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -61,7 +80,12 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
   const [selectedSource, setSelectedSource] = useState<SelectedSource | null>(null);
   const [planItemStatuses, setPlanItemStatuses] = useState<Record<string, ProductPlanStatus>>({});
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const composerRef = useRef<TextAreaRef | null>(null);
   const userId = session.user.id;
+  const activeThread = useMemo(
+    () => threads.find((item) => item.id === activeThreadId) ?? null,
+    [activeThreadId, threads],
+  );
   const planIdsKey = useMemo(
     () => collectPlanIds(messages, pendingInterrupt).join('|'),
     [messages, pendingInterrupt],
@@ -331,23 +355,52 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
   return (
     <div className="advisor-page">
       <header className="advisor-header">
-        <div className="brand">
-          <span className="brand__mark"><SafetyCertificateOutlined /></span>
-          <span><strong>安心保</strong><small>智能顾问</small></span>
+        <div className="advisor-header__left">
+          <div className="brand">
+            <span className="brand__mark"><SafetyCertificateOutlined /></span>
+            <span>
+              <strong>安心保</strong>
+              <small>智能顾问</small>
+            </span>
+          </div>
+          <span className="advisor-header__divider" aria-hidden="true" />
+          <div className="advisor-header__thread" title={activeThread?.title ?? '新咨询'}>
+            <MessageOutlined />
+            <span>{activeThread?.title ?? '新咨询'}</span>
+          </div>
         </div>
-        <div>
-          <span>{session.user.displayName || session.user.username}</span>
+        <div className="advisor-header__right">
+          {sending ? (
+            <div className="advisor-engine-status is-busy">
+              <span className="engine-dot" aria-hidden="true" />
+              <span>正在回复…</span>
+            </div>
+          ) : null}
+          <span className="advisor-user-badge">{session.user.displayName || session.user.username}</span>
           <Button icon={<ArrowLeftOutlined />} onClick={onBack}>返回商城</Button>
         </div>
       </header>
       <main className="advisor-workspace">
         <aside className="thread-panel">
-          <Button block type="primary" icon={<PlusOutlined />} onClick={() => void startNewThread()}>
+          <div className="thread-panel__head">
+            <strong>历史咨询</strong>
+            <span className="thread-count">{threads.length}</span>
+          </div>
+          <Button
+            block
+            className="thread-new-btn"
+            icon={<PlusOutlined />}
+            onClick={() => void startNewThread()}
+          >
             新建咨询
           </Button>
           <div className="thread-list">
-            {loadingThreads ? <Spin /> : null}
-            {!loadingThreads && threads.length === 0 ? <Empty description="暂无会话" /> : null}
+            {loadingThreads ? (
+              <div className="thread-loading"><Spin /></div>
+            ) : null}
+            {!loadingThreads && threads.length === 0 ? (
+              <Empty description="暂无会话" />
+            ) : null}
             {threads.map((thread) => (
               <div
                 className={thread.id === activeThreadId ? 'thread-item is-active' : 'thread-item'}
@@ -389,17 +442,36 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
           {error ? <Alert className="chat-alert" type="error" showIcon message={error} /> : null}
           <div className="chat-scroll">
             {loadingMessages ? (
-              <div className="chat-loading"><Spin /></div>
+              <div className="chat-loading"><Spin size="large" /></div>
             ) : messages.length === 0 ? (
               <div className="chat-empty">
-                <CustomerServiceOutlined />
+                <div className="chat-empty__emblem">
+                  <CustomerServiceOutlined />
+                </div>
                 <h1>你好，我是安心保智能顾问</h1>
-                <p>告诉我你的年龄、职业、预算和关注的保障类型，我会协助你梳理保险方案。</p>
+                <p>告诉我你的年龄、职业、预算和关注的险种，我来协助梳理保障方案。</p>
+                <div className="chat-empty__scenarios" aria-label="快捷示例提问">
+                  {SCENARIO_PROMPTS.map((item) => (
+                    <button
+                      key={item.tag}
+                      type="button"
+                      className="scenario-card"
+                      onClick={() => {
+                        setInput(item.prompt);
+                        composerRef.current?.focus();
+                      }}
+                    >
+                      <span className="scenario-card__tag">{item.tag}</span>
+                      <strong>{item.title}</strong>
+                      <p>{item.prompt}</p>
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : (
               messages.map((message, index) => (
                 <div className={`chat-message chat-message--${message.role}`} key={`${message.role}-${index}`}>
-                  <div>
+                  <div className="chat-bubble">
                     {message.content ? (
                       <MessageContent
                         message={message}
@@ -409,7 +481,12 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
                           setSelectedSource({ source, answerContent })
                         }
                       />
-                    ) : '正在整理回复...'}
+                    ) : (
+                      <div className="chat-typing">
+                        <span className="typing-dots" aria-hidden="true"><i /><i /><i /></span>
+                        <span>正在回复…</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -430,22 +507,25 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
             <div ref={bottomRef} />
           </div>
           <div className="chat-composer">
-            <Input.TextArea
-              value={input}
-              autoSize={{ minRows: 1, maxRows: 4 }}
-              placeholder="描述你的保险需求，例如：30岁，有医保，预算每年3000元，想配置医疗险和重疾险"
-              disabled={sending}
-              onChange={(event) => setInput(event.target.value)}
-              onPressEnter={(event) => {
-                if (!event.shiftKey) {
-                  event.preventDefault();
-                  void sendMessage();
-                }
-              }}
-            />
-            <Button type="primary" icon={<SendOutlined />} loading={sending} onClick={() => void sendMessage()}>
-              发送
-            </Button>
+            <div className="chat-composer__row">
+              <Input.TextArea
+                ref={composerRef}
+                value={input}
+                autoSize={{ minRows: 1, maxRows: 4 }}
+                placeholder="输入你的保险需求，例如：30岁，有医保，预算每年3000元，想配医疗险和重疾险"
+                disabled={sending}
+                onChange={(event) => setInput(event.target.value)}
+                onPressEnter={(event) => {
+                  if (!event.shiftKey) {
+                    event.preventDefault();
+                    void sendMessage();
+                  }
+                }}
+              />
+              <Button type="primary" icon={<SendOutlined />} loading={sending} onClick={() => void sendMessage()}>
+                发送
+              </Button>
+            </div>
           </div>
         </section>
       </main>
