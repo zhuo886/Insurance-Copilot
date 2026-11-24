@@ -84,7 +84,7 @@ B1_ROUTER_PROMPT = """
 - clause_qa：纯粹只问保险产品条款细节；
 - recommend：涉及产品推荐、组合配置、价格咨询或保费试算；
 - plan_save：明确要求提交或保存配置方案草稿。
-只能选择一个主分支。
+只能选择一个主分支，请以严格合法的 JSON 格式返回 branch 字段。
 """.strip()
 
 
@@ -574,11 +574,11 @@ async def run_one_case(
                         "   - 每出现 1 处条款原文未提及或无法支撑的具体条款数字/条件断言：扣 20 分；\n"
                         "   - 每出现 1 处条款数值或赔付条件与原文矛盾冲突：扣 35 分；\n"
                         "   - 每出现 1 个虚假或不在上述 `[ref-xxx]` 列表里的引用编号：扣 30 分。\n"
-                        "请严格公正打分（最低 0 分），并在 reason 中简要写明每处扣分项或全部吻合依据。"
+                        "请严格公正打分（最低 0 分），并以合法 JSON 格式返回 `score` 与 `reason` 字段（在 reason 中简要写明每处扣分项或全部吻合依据）。"
                     )
                     score_obj = await judge_llm.ainvoke(
                         [
-                            SystemMessage(content="你是极端严谨、客观中立的保险条款 RAG 忠实度审计专家。"),
+                            SystemMessage(content="你是极端严谨、客观中立的保险条款 RAG 忠实度审计专家。请严格以 JSON 格式输出 score（0-100 整数）与 reason 字段。"),
                             HumanMessage(content=judge_prompt),
                         ]
                     )

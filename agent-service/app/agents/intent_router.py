@@ -20,6 +20,8 @@ intent只能从以下选项中选择：
 - human_handoff：投诉、高风险问题或用户明确要求人工服务
 - chitchat：与保险业务无关的普通聊天
 - fallback：无法判断用户意图
+
+请以严格合法的 JSON 格式返回 intent 与 reason 字段。
 """.strip()
 
 class IntentRouter:
