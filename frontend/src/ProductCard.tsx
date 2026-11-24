@@ -11,6 +11,8 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onView }: ProductCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
+  const visibleHighlights = product.highlights.slice(0, 3);
+  const extraHighlightCount = Math.max(0, product.highlights.length - visibleHighlights.length);
 
   return (
     <article className="product-card">
@@ -34,7 +36,12 @@ export function ProductCard({ product, onView }: ProductCardProps) {
       </div>
 
       <div className="product-card__body">
-        <h3 title={product.name}>{product.name}</h3>
+        <div className="product-card__title-block">
+          <span className="product-card__eyebrow">
+            {product.insurer} · 真实合同档案
+          </span>
+          <h3 title={product.name}>{product.name}</h3>
+        </div>
         <p className="product-card__description">{product.description}</p>
 
         <div className="product-card__audience">
@@ -43,13 +50,19 @@ export function ProductCard({ product, onView }: ProductCardProps) {
         </div>
 
         <ul className="product-card__highlights">
-          {product.highlights.slice(0, 3).map((highlight) => (
+          {visibleHighlights.map((highlight) => (
             <li key={highlight}>
               <CheckCircleOutlined />
               <span>{highlight}</span>
             </li>
           ))}
         </ul>
+
+        {extraHighlightCount > 0 ? (
+          <span className="product-card__more-note">
+            另有 {extraHighlightCount} 项保障亮点，点击详情查看
+          </span>
+        ) : null}
       </div>
 
       <div className="product-card__footer">
@@ -61,7 +74,7 @@ export function ProductCard({ product, onView }: ProductCardProps) {
           </div>
         </div>
         <button type="button" className="product-card__cta" onClick={() => onView(product)}>
-          查看详情 <RightOutlined />
+          查看档案 <RightOutlined />
         </button>
       </div>
     </article>

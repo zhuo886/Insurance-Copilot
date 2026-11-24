@@ -1,15 +1,19 @@
 import {
   ArrowRightOutlined,
   AuditOutlined,
+  CalculatorOutlined,
   CheckCircleFilled,
   CustomerServiceOutlined,
+  FileProtectOutlined,
   LoginOutlined,
   LogoutOutlined,
   SafetyCertificateOutlined,
+  SearchOutlined,
+  SortAscendingOutlined,
   VerifiedOutlined,
 } from '@ant-design/icons';
-import { Alert, Button, Empty, Modal, Segmented, Skeleton } from 'antd';
-import { useEffect, useState } from 'react';
+import { Alert, Button, Empty, Input, Modal, Segmented, Select, Skeleton } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 
 import { listProducts } from './api';
 import { AuthModal } from './AuthModal';
@@ -18,6 +22,11 @@ import { ProductCard } from './ProductCard';
 import type { AuthSession, InsuranceCategory, Product } from './types';
 
 type CategoryFilter = InsuranceCategory | 'all';
+type SortMode = 'default' | 'price_asc' | 'price_desc';
+type PendingAuthAction =
+  | { type: 'consult' }
+  | { type: 'apply'; productId: number }
+  | null;
 
 const CATEGORY_OPTIONS: Array<{ label: string; value: CategoryFilter }> = [
   { label: '全部精选', value: 'all' },
@@ -33,6 +42,7 @@ interface HomePageProps {
   onAuthenticated: (session: AuthSession) => void;
   onLogout: () => void;
   onConsult: () => void;
+  onTryCalculate: (productId: number) => void;
 }
 
 export function HomePage({
@@ -41,13 +51,18 @@ export function HomePage({
   onAuthenticated,
   onLogout,
   onConsult,
+  onTryCalculate,
 }: HomePageProps) {
   const [category, setCategory] = useState<CategoryFilter>('all');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [sortMode, setSortMode] = useState<SortMode>('default');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(initialAuthOpen);
-  const [consultAfterLogin, setConsultAfterLogin] = useState(initialAuthOpen);
+  const [pendingAction, setPendingAction] = useState<PendingAuthAction>(
+    initialAuthOpen ? { type: 'consult' } : null,
+  );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -67,24 +82,68 @@ export function HomePage({
     return () => controller.abort();
   }, [category, reloadKey]);
 
-  function openAuth(continueToAdvisor = false) {
-    setConsultAfterLogin(continueToAdvisor);
+  const displayedProducts = useMemo(() => {
+    const keyword = searchKeyword.trim().toLowerCase();
+    const filtered = keyword
+      ? products.filter((item) => {
+          const haystack = [
+            item.name,
+            item.insurer,
+            item.description,
+            item.target_group,
+            ...item.highlights,
+          ]
+            .join(' ')
+            .toLowerCase();
+          return haystack.includes(keyword);
+        })
+      : products;
+
+    if (sortMode === 'default') return filtered;
+    const sorted = [...filtered];
+    sorted.sort((a, b) =>
+      sortMode === 'price_asc'
+        ? Number(a.min_premium) - Number(b.min_premium)
+        : Number(b.min_premium) - Number(a.min_premium),
+    );
+    return sorted;
+  }, [products, searchKeyword, sortMode]);
+
+  function openAuth(nextAction: PendingAuthAction = null) {
+    setPendingAction(nextAction);
     setAuthOpen(true);
   }
 
   function consult() {
     if (session) {
+      setSelectedProduct(null);
       onConsult();
       return;
     }
-    openAuth(true);
+    openAuth({ type: 'consult' });
+  }
+
+  function tryCalculate(productId: number) {
+    if (session) {
+      setSelectedProduct(null);
+      onTryCalculate(productId);
+      return;
+    }
+    openAuth({ type: 'apply', productId });
   }
 
   function authenticated(nextSession: AuthSession) {
     onAuthenticated(nextSession);
     setAuthOpen(false);
-    if (consultAfterLogin) onConsult();
-    setConsultAfterLogin(false);
+    const action = pendingAction;
+    setPendingAction(null);
+    if (!action) return;
+    setSelectedProduct(null);
+    if (action.type === 'consult') {
+      onConsult();
+    } else if (action.type === 'apply') {
+      onTryCalculate(action.productId);
+    }
   }
 
   return (
@@ -125,9 +184,9 @@ export function HomePage({
       <main>
         <section className="hero-editorial">
           <div className="hero-editorial__inner">
-            <div className="hero-copy">
+            <div className="hero-copy hero-animate">
               <span className="hero-eyebrow">
-                12 款真实条款 · 11/12 官方精算费率 · 确定性合规护栏
+                私享保险规划 · 备案合同逐句溯源 · 官方精算费率查表
               </span>
               <h1>
                 以精算与条款为据，
@@ -138,6 +197,22 @@ export function HomePage({
                 甄选在售商业保险真实合同，基于官方精算费率表精准试算保费，
                 结合跨产品并行条款检索与承保红线硬校验，让每一项保障选择都经得起原文推敲。
               </p>
+
+              <div className="hero-stat-strip" aria-label="核心系统保障指标">
+                <div className="hero-stat-pill">
+                  <strong>12 款</strong>
+                  <span>真实备案合同</span>
+                </div>
+                <div className="hero-stat-pill">
+                  <strong>11 / 12</strong>
+                  <span>官方精算费率表</span>
+                </div>
+                <div className="hero-stat-pill">
+                  <strong>100%</strong>
+                  <span>承保红线硬校验</span>
+                </div>
+              </div>
+
               <div className="hero-cta-group">
                 <Button
                   type="primary"
@@ -153,10 +228,10 @@ export function HomePage({
               </div>
             </div>
 
-            <aside className="hero-showcase" aria-label="私行保障配置示例">
+            <aside className="hero-showcase hero-animate hero-animate--delay" aria-label="私行保障配置示例">
               <div className="hero-showcase__head">
                 <div>
-                  <span>家庭保障组合诊断示例</span>
+                  <span>私享家庭保障诊断书</span>
                   <strong>30 岁有医保 · 均衡防线配置</strong>
                 </div>
                 <span className="hero-showcase__badge">
@@ -218,16 +293,43 @@ export function HomePage({
               <p>每款产品均对应真实备案合同条款，支持顾问逐句检索比对与在线保费试算</p>
             </div>
             <span className="products-count">
-              {loading ? '正在整理产品目录...' : `当前展示 ${products.length} 款在售产品`}
+              {loading
+                ? '正在整理产品目录...'
+                : searchKeyword.trim()
+                  ? `筛选命中 ${displayedProducts.length} / ${products.length} 款`
+                  : `当前展示 ${displayedProducts.length} 款在售产品`}
             </span>
           </div>
 
-          <div className="category-filter" aria-label="按保险类型筛选">
-            <Segmented<CategoryFilter>
-              value={category}
-              options={CATEGORY_OPTIONS}
-              onChange={setCategory}
-            />
+          <div className="catalog-toolbar" aria-label="筛选与检索产品">
+            <div className="category-filter">
+              <Segmented<CategoryFilter>
+                value={category}
+                options={CATEGORY_OPTIONS}
+                onChange={setCategory}
+              />
+            </div>
+            <div className="catalog-toolbar__controls">
+              <Input
+                allowClear
+                className="catalog-search"
+                prefix={<SearchOutlined />}
+                placeholder="搜索产品名称、保司、亮点..."
+                value={searchKeyword}
+                onChange={(event) => setSearchKeyword(event.target.value)}
+              />
+              <Select<SortMode>
+                className="catalog-sort"
+                value={sortMode}
+                onChange={setSortMode}
+                suffixIcon={<SortAscendingOutlined />}
+                options={[
+                  { label: '默认排序', value: 'default' },
+                  { label: '年保费从低到高', value: 'price_asc' },
+                  { label: '年保费从高到低', value: 'price_desc' },
+                ]}
+              />
+            </div>
           </div>
 
           {error ? (
@@ -247,14 +349,24 @@ export function HomePage({
                 <div className="product-skeleton" key={index}><Skeleton active /></div>
               ))}
             </div>
-          ) : products.length ? (
+          ) : displayedProducts.length ? (
             <div className="product-grid">
-              {products.map((product) => (
+              {displayedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} onView={setSelectedProduct} />
               ))}
             </div>
           ) : (
-            <Empty description="该类型暂时没有可展示的产品" />
+            <Empty
+              description={
+                searchKeyword.trim()
+                  ? `未找到与“${searchKeyword.trim()}”相关的保险产品`
+                  : '该类型暂时没有可展示的产品'
+              }
+            >
+              {searchKeyword.trim() ? (
+                <Button onClick={() => setSearchKeyword('')}>清空搜索条件</Button>
+              ) : null}
+            </Empty>
           )}
         </section>
 
@@ -285,32 +397,78 @@ export function HomePage({
         open={authOpen}
         onCancel={() => {
           setAuthOpen(false);
-          setConsultAfterLogin(false);
+          setPendingAction(null);
         }}
         onSuccess={authenticated}
       />
 
       <Modal
         open={selectedProduct !== null}
-        title={selectedProduct?.name}
-        footer={[
-          <Button key="close" onClick={() => setSelectedProduct(null)}>关闭</Button>,
-          <Button key="consult" type="primary" onClick={consult}>向顾问咨询此产品</Button>,
-        ]}
+        title={null}
+        footer={
+          selectedProduct
+            ? [
+                <Button key="close" onClick={() => setSelectedProduct(null)}>关闭</Button>,
+                <Button
+                  key="calculate"
+                  icon={<CalculatorOutlined />}
+                  onClick={() => tryCalculate(selectedProduct.id)}
+                >
+                  在线试算保费
+                </Button>,
+                <Button
+                  key="consult"
+                  type="primary"
+                  icon={<CustomerServiceOutlined />}
+                  onClick={consult}
+                >
+                  向顾问咨询此产品
+                </Button>,
+              ]
+            : null
+        }
         onCancel={() => setSelectedProduct(null)}
-        width={640}
+        width={680}
       >
         {selectedProduct ? (
           <div className="product-detail">
-            <p>{selectedProduct.description}</p>
+            <div className="product-detail__banner">
+              <div className="product-detail__banner-copy">
+                <div className="product-detail__tags">
+                  <span className="detail-category-badge">
+                    {CATEGORY_LABELS[selectedProduct.category]}
+                  </span>
+                  <span className="detail-insurer-badge">{selectedProduct.insurer}</span>
+                </div>
+                <h3>{selectedProduct.name}</h3>
+              </div>
+              <div className="product-detail__price-box">
+                <span>年缴参考起步</span>
+                <div>
+                  <strong>¥{selectedProduct.min_premium.toLocaleString('zh-CN')}</strong>
+                  <small>起 / 年</small>
+                </div>
+              </div>
+            </div>
+
+            <p className="product-detail__desc">{selectedProduct.description}</p>
+
             <dl>
               <div><dt>承保公司</dt><dd>{selectedProduct.insurer}</dd></div>
               <div><dt>保险类型</dt><dd>{CATEGORY_LABELS[selectedProduct.category]}</dd></div>
               <div><dt>适合人群</dt><dd>{selectedProduct.target_group}</dd></div>
-              <div><dt>参考起步价</dt><dd>¥{selectedProduct.min_premium.toLocaleString('zh-CN')} 起 / 年</dd></div>
+              <div><dt>保费试算支持</dt><dd>支持在线保费试算与顾问条款解读</dd></div>
             </dl>
-            <h4>核心保障亮点</h4>
-            <ul>{selectedProduct.highlights.map((item) => <li key={item}>{item}</li>)}</ul>
+
+            <h4><FileProtectOutlined /> 核心保障亮点</h4>
+            <ul>
+              {selectedProduct.highlights.map((item) => (
+                <li key={item}>
+                  <CheckCircleFilled />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
       </Modal>

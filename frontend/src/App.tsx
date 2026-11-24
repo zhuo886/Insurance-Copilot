@@ -77,6 +77,7 @@ export default function App() {
       onAuthenticated={authenticated}
       onLogout={logout}
       onConsult={() => navigate('/advisor')}
+      onTryCalculate={(productId) => navigate(`/apply?product_id=${productId}`)}
     />
   );
 }

@@ -11,8 +11,10 @@ import {
   SendOutlined,
   ShoppingCartOutlined,
   StopOutlined,
+  VerifiedOutlined,
 } from '@ant-design/icons';
 import { Alert, Button, Drawer, Empty, Input, Modal, Popconfirm, Spin } from 'antd';
+import type { TextAreaRef } from 'antd/es/input/TextArea';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { attachInfoToLastAssistantMessage, normalizeAdditionalInfo } from './additionalInfo';
@@ -44,6 +46,27 @@ interface ApplyProductTarget {
   itemId: string;
 }
 
+const SCENARIO_PROMPTS = [
+  {
+    code: '01',
+    tag: '组合规划',
+    title: '家庭多险种预算配置',
+    prompt: '30岁男性有医保，年预算3500元，请推荐医疗险和重疾险组合',
+  },
+  {
+    code: '02',
+    tag: '条款对比',
+    title: '外购药与免赔额逐条比对',
+    prompt: '对比星相守2号和众安尊享e生2026版的免赔额与外购药条款',
+  },
+  {
+    code: '03',
+    tag: '保单与理赔',
+    title: '生效保单核验与理赔指引',
+    prompt: '帮我查一下当前名下的生效保单和理赔申请指南',
+  },
+];
+
 export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct }: AdvisorPageProps) {
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -61,7 +84,12 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
   const [selectedSource, setSelectedSource] = useState<SelectedSource | null>(null);
   const [planItemStatuses, setPlanItemStatuses] = useState<Record<string, ProductPlanStatus>>({});
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const composerRef = useRef<TextAreaRef | null>(null);
   const userId = session.user.id;
+  const activeThread = useMemo(
+    () => threads.find((item) => item.id === activeThreadId) ?? null,
+    [activeThreadId, threads],
+  );
   const planIdsKey = useMemo(
     () => collectPlanIds(messages, pendingInterrupt).join('|'),
     [messages, pendingInterrupt],
@@ -331,23 +359,53 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
   return (
     <div className="advisor-page">
       <header className="advisor-header">
-        <div className="brand">
-          <span className="brand__mark"><SafetyCertificateOutlined /></span>
-          <span><strong>安心保</strong><small>智能顾问</small></span>
+        <div className="advisor-header__left">
+          <div className="brand">
+            <span className="brand__mark"><SafetyCertificateOutlined /></span>
+            <span>
+              <strong>安心保</strong>
+              <small>PRIVATE ADVISORY</small>
+            </span>
+          </div>
+          <span className="advisor-header__divider" aria-hidden="true" />
+          <div className="advisor-header__thread" title={activeThread?.title ?? '新建咨询'}>
+            <MessageOutlined />
+            <span>{activeThread?.title ?? '新建咨询'}</span>
+          </div>
         </div>
-        <div>
-          <span>{session.user.displayName || session.user.username}</span>
+        <div className="advisor-header__right">
+          <div className={sending ? 'advisor-engine-status is-busy' : 'advisor-engine-status'}>
+            <span className="engine-dot" aria-hidden="true" />
+            <span>{sending ? '正在检索备案条款与校验约束…' : '精算与条款引擎就绪'}</span>
+          </div>
+          <span className="advisor-user-badge">{session.user.displayName || session.user.username}</span>
           <Button icon={<ArrowLeftOutlined />} onClick={onBack}>返回商城</Button>
         </div>
       </header>
       <main className="advisor-workspace">
         <aside className="thread-panel">
-          <Button block type="primary" icon={<PlusOutlined />} onClick={() => void startNewThread()}>
+          <div className="thread-panel__head">
+            <div>
+              <span className="thread-panel__kicker">ADVISORY ARCHIVE</span>
+              <strong>咨询档案</strong>
+            </div>
+            <span className="thread-count">{threads.length}</span>
+          </div>
+          <Button
+            block
+            className="thread-new-btn"
+            icon={<PlusOutlined />}
+            onClick={() => void startNewThread()}
+          >
             新建咨询
           </Button>
           <div className="thread-list">
-            {loadingThreads ? <Spin /> : null}
-            {!loadingThreads && threads.length === 0 ? <Empty description="暂无会话" /> : null}
+            {loadingThreads ? (
+              <div className="thread-loading"><Spin /></div>
+            ) : null}
+            {!loadingThreads && threads.length === 0 ? (
+              <Empty description="暂无会话记录" />
+            ) : null}
             {threads.map((thread) => (
               <div
                 className={thread.id === activeThreadId ? 'thread-item is-active' : 'thread-item'}
@@ -383,13 +441,17 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
               </div>
             ))}
           </div>
+          <div className="thread-panel__footer">
+            <strong><VerifiedOutlined /> 私享顾问合规守则</strong>
+            <p>回答内点击 [数字] 可展开备案合同原文；推荐方案落库前必经您本人确认审批。</p>
+          </div>
         </aside>
 
         <section className="chat-panel">
           {error ? <Alert className="chat-alert" type="error" showIcon message={error} /> : null}
           <div className="chat-scroll">
             {loadingMessages ? (
-              <div className="chat-loading"><Spin /></div>
+              <div className="chat-loading"><Spin size="large" /></div>
             ) : messages.length === 0 ? (
               <div className="chat-empty">
                 <div className="chat-empty__emblem">
@@ -398,19 +460,23 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
                 <span className="chat-empty__kicker">PRIVATE INSURANCE ADVISORY</span>
                 <h1>你好，我是安心保私享智能顾问</h1>
                 <p>告诉我您的年龄、职业、预算和关注的保障类型，我将结合官方费率表与备案条款为您梳理配置方案。</p>
-                <div className="chat-empty__prompts" aria-label="快捷示例提问">
-                  {[
-                    '30岁男性有医保，年预算3500元，请推荐医疗险和重疾险组合',
-                    '对比星相守2号和众安尊享e生2026版的免赔额与外购药条款',
-                    '帮我查一下当前名下的生效保单和理赔申请指南',
-                  ].map((prompt) => (
+                <div className="chat-empty__scenarios" aria-label="私享咨询情景示例">
+                  {SCENARIO_PROMPTS.map((item) => (
                     <button
-                      key={prompt}
+                      key={item.code}
                       type="button"
-                      className="prompt-chip"
-                      onClick={() => setInput(prompt)}
+                      className="scenario-card"
+                      onClick={() => {
+                        setInput(item.prompt);
+                        composerRef.current?.focus();
+                      }}
                     >
-                      {prompt}
+                      <div className="scenario-card__top">
+                        <span className="scenario-card__num">{item.code}</span>
+                        <span className="scenario-card__tag">{item.tag}</span>
+                      </div>
+                      <strong>{item.title}</strong>
+                      <p>{item.prompt}</p>
                     </button>
                   ))}
                 </div>
@@ -418,7 +484,7 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
             ) : (
               messages.map((message, index) => (
                 <div className={`chat-message chat-message--${message.role}`} key={`${message.role}-${index}`}>
-                  <div>
+                  <div className="chat-bubble">
                     {message.content ? (
                       <MessageContent
                         message={message}
@@ -428,7 +494,12 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
                           setSelectedSource({ source, answerContent })
                         }
                       />
-                    ) : '正在整理回复...'}
+                    ) : (
+                      <div className="chat-typing">
+                        <span className="typing-dots" aria-hidden="true"><i /><i /><i /></span>
+                        <span>正在核验官方费率表与备案条款原文…</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -449,22 +520,28 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
             <div ref={bottomRef} />
           </div>
           <div className="chat-composer">
-            <Input.TextArea
-              value={input}
-              autoSize={{ minRows: 1, maxRows: 4 }}
-              placeholder="描述你的保险需求，例如：30岁，有医保，预算每年3000元，想配置医疗险和重疾险"
-              disabled={sending}
-              onChange={(event) => setInput(event.target.value)}
-              onPressEnter={(event) => {
-                if (!event.shiftKey) {
-                  event.preventDefault();
-                  void sendMessage();
-                }
-              }}
-            />
-            <Button type="primary" icon={<SendOutlined />} loading={sending} onClick={() => void sendMessage()}>
-              发送
-            </Button>
+            <div className="chat-composer__row">
+              <Input.TextArea
+                ref={composerRef}
+                value={input}
+                autoSize={{ minRows: 1, maxRows: 4 }}
+                placeholder="描述你的保险需求，例如：30岁，有医保，预算每年3000元，想配置医疗险和重疾险"
+                disabled={sending}
+                onChange={(event) => setInput(event.target.value)}
+                onPressEnter={(event) => {
+                  if (!event.shiftKey) {
+                    event.preventDefault();
+                    void sendMessage();
+                  }
+                }}
+              />
+              <Button type="primary" icon={<SendOutlined />} loading={sending} onClick={() => void sendMessage()}>
+                发送
+              </Button>
+            </div>
+            <div className="chat-composer__hint">
+              Enter 发送 · Shift + Enter 换行 · 点击 [数字] 查看备案合同原文
+            </div>
           </div>
         </section>
       </main>
@@ -548,8 +625,21 @@ function MessageContent({
   const sources = extractClauseSources(message.additionalInfo);
   const sourceRefs = buildSourceRefs(message.content, sources);
   const sourceById = new Map(sources.map((source) => [source.source_id, source]));
+  const evidenceCount = sourceRefs.length || sources.length;
   return (
     <>
+      {message.role === 'assistant' ? (
+        <div className="chat-msg-head">
+          <span className="chat-msg-head__role">
+            <SafetyCertificateOutlined /> 安心保私享顾问
+          </span>
+          {evidenceCount > 0 ? (
+            <span className="chat-msg-head__verified">
+              <VerifiedOutlined /> 已附 {evidenceCount} 条备案条款依据
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       <MarkdownMessage
         content={message.content}
         sourceRefs={sourceRefs.map((item) => ({ sourceId: item.source.source_id, number: item.number }))}
