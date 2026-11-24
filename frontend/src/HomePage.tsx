@@ -1,7 +1,12 @@
 import {
+  ArrowRightOutlined,
+  AuditOutlined,
+  CheckCircleFilled,
   CustomerServiceOutlined,
   LoginOutlined,
+  LogoutOutlined,
   SafetyCertificateOutlined,
+  VerifiedOutlined,
 } from '@ant-design/icons';
 import { Alert, Button, Empty, Modal, Segmented, Skeleton } from 'antd';
 import { useEffect, useState } from 'react';
@@ -15,10 +20,10 @@ import type { AuthSession, InsuranceCategory, Product } from './types';
 type CategoryFilter = InsuranceCategory | 'all';
 
 const CATEGORY_OPTIONS: Array<{ label: string; value: CategoryFilter }> = [
-  { label: '全部', value: 'all' },
+  { label: '全部精选', value: 'all' },
   { label: '医疗险', value: 'medical' },
   { label: '重疾险', value: 'critical_illness' },
-  { label: '寿险', value: 'life' },
+  { label: '终身寿险', value: 'life' },
   { label: '意外险', value: 'accident' },
 ];
 
@@ -88,48 +93,135 @@ export function HomePage({
         <div className="site-header__inner">
           <a className="brand" href="/" aria-label="安心保首页">
             <span className="brand__mark"><SafetyCertificateOutlined /></span>
-            <span><strong>安心保</strong><small>保险优选平台</small></span>
+            <span>
+              <strong>安心保</strong>
+              <small>PRIVATE INSURANCE OFFICE</small>
+            </span>
           </a>
           <nav className="site-nav" aria-label="主导航">
-            <a className="is-active" href="#products">保险产品</a>
-            <a href="#service">服务保障</a>
+            <a className="is-active" href="#products">精选产品</a>
+            <a href="#service">私享保障准则</a>
           </nav>
           <div className="site-actions">
             {session ? (
               <>
-                <span className="user-name">{session.user.displayName || session.user.username}</span>
-                <Button type="text" onClick={onLogout}>退出</Button>
+                <span className="user-pill">
+                  {session.user.displayName || session.user.username}
+                </span>
+                <Button type="text" icon={<LogoutOutlined />} onClick={onLogout}>退出</Button>
               </>
             ) : (
-              <>
-                <Button type="text" icon={<LoginOutlined />} onClick={() => openAuth()}>
-                  登录
-                </Button>
-              </>
+              <Button type="text" icon={<LoginOutlined />} onClick={() => openAuth()}>
+                登录 / 注册
+              </Button>
             )}
+            <Button type="primary" icon={<CustomerServiceOutlined />} onClick={consult}>
+              AI 专属顾问
+            </Button>
           </div>
         </div>
       </header>
 
       <main>
-        <section className="intro-band">
-          <div>
-            <h1>选对保障，更从容地面对生活</h1>
-            <p>汇集多家保险公司产品，按需求清晰比较，保费以实际试算结果为准。</p>
+        <section className="hero-editorial">
+          <div className="hero-editorial__inner">
+            <div className="hero-copy">
+              <span className="hero-eyebrow">
+                12 款真实条款 · 11/12 官方精算费率 · 确定性合规护栏
+              </span>
+              <h1>
+                以精算与条款为据，
+                <br />
+                定制从容的家庭保障
+              </h1>
+              <p>
+                甄选在售商业保险真实合同，基于官方精算费率表精准试算保费，
+                结合跨产品并行条款检索与承保红线硬校验，让每一项保障选择都经得起原文推敲。
+              </p>
+              <div className="hero-cta-group">
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<CustomerServiceOutlined />}
+                  onClick={consult}
+                >
+                  开启专属保障规划
+                </Button>
+                <a className="hero-secondary-link" href="#products">
+                  浏览精选保障 <ArrowRightOutlined />
+                </a>
+              </div>
+            </div>
+
+            <aside className="hero-showcase" aria-label="私行保障配置示例">
+              <div className="hero-showcase__head">
+                <div>
+                  <span>家庭保障组合诊断示例</span>
+                  <strong>30 岁有医保 · 均衡防线配置</strong>
+                </div>
+                <span className="hero-showcase__badge">
+                  <AuditOutlined /> 官方费率核验
+                </span>
+              </div>
+
+              <div className="hero-showcase__rows">
+                <div className="showcase-row">
+                  <div>
+                    <strong>百万医疗险防线</strong>
+                    <small>住院与特药报销 · 20 年保证续保</small>
+                  </div>
+                  <div className="showcase-row__right">
+                    <span>¥290–¥360/年</span>
+                    <div className="showcase-bar"><i style={{ width: '44%' }} /></div>
+                  </div>
+                </div>
+                <div className="showcase-row">
+                  <div>
+                    <strong>核心重疾给付防线</strong>
+                    <small>收入损失补偿 · 官方费率查表试算</small>
+                  </div>
+                  <div className="showcase-row__right">
+                    <span>¥2,500–¥2,900/年</span>
+                    <div className="showcase-bar"><i style={{ width: '84%' }} /></div>
+                  </div>
+                </div>
+                <div className="showcase-row">
+                  <div>
+                    <strong>综合意外及猝死防线</strong>
+                    <small>全天候交通意外与意外医疗赔付</small>
+                  </div>
+                  <div className="showcase-row__right">
+                    <span>¥180–¥296/年</span>
+                    <div className="showcase-bar"><i style={{ width: '28%' }} /></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="hero-showcase__checks">
+                <span><CheckCircleFilled /> 条款原文 [ref] 溯源</span>
+                <span><VerifiedOutlined /> 年龄/职业红线零越界</span>
+              </div>
+
+              <button type="button" className="hero-showcase__action" onClick={consult}>
+                <span>立即为我试算专属组合</span>
+                <ArrowRightOutlined />
+              </button>
+            </aside>
           </div>
-          <Button type="primary" ghost icon={<CustomerServiceOutlined />} onClick={consult}>
-            让顾问帮我选
-          </Button>
         </section>
 
         <section className="products-section" id="products">
           <div className="products-heading">
             <div>
-              <h2>保险产品</h2>
-              <p>根据保障需求选择合适的产品类型</p>
+              <span className="section-kicker">CURATED PORTFOLIO</span>
+              <h2>真实合同精选保障库</h2>
+              <p>每款产品均对应真实备案合同条款，支持顾问逐句检索比对与在线保费试算</p>
             </div>
-            <span>{loading ? '正在加载' : `共 ${products.length} 款产品`}</span>
+            <span className="products-count">
+              {loading ? '正在整理产品目录...' : `当前展示 ${products.length} 款在售产品`}
+            </span>
           </div>
+
           <div className="category-filter" aria-label="按保险类型筛选">
             <Segmented<CategoryFilter>
               value={category}
@@ -167,13 +259,27 @@ export function HomePage({
         </section>
 
         <section className="service-strip" id="service">
-          <div><strong>多家产品</strong><span>覆盖常见保障需求</span></div>
-          <div><strong>信息清晰</strong><span>条款重点集中展示</span></div>
-          <div><strong>顾问协助</strong><span>按预算和需求组合建议</span></div>
+          <article className="trust-card">
+            <span className="trust-card__num">01</span>
+            <strong>合同条款逐句溯源</strong>
+            <p>跨产品并行检索备案原文，每项关键数字均标注合法来源编号，拒绝模板兜底与无依据演绎。</p>
+          </article>
+          <article className="trust-card">
+            <span className="trust-card__num">02</span>
+            <strong>官方费率精算试算</strong>
+            <p>结构化接入官方精算费率表，按年龄、性别、社保与缴费期精准试算；缺表项明示区间估算。</p>
+          </article>
+          <article className="trust-card">
+            <span className="trust-card__num">03</span>
+            <strong>承保红线确定性护栏</strong>
+            <p>硬核校验被保人年龄上限、职业类别与家庭年度预算，并需经您确认审批后方可落库生单。</p>
+          </article>
         </section>
       </main>
 
-      <footer className="site-footer">保险产品信息仅供参考，具体保障责任以保险合同和实际投保页面为准。</footer>
+      <footer className="site-footer">
+        保险产品信息仅供参考，具体保障责任、等待期与免赔规定以对应保险合同条款及正式投保页面为准。
+      </footer>
 
       <AuthModal
         open={authOpen}
@@ -189,10 +295,10 @@ export function HomePage({
         title={selectedProduct?.name}
         footer={[
           <Button key="close" onClick={() => setSelectedProduct(null)}>关闭</Button>,
-          <Button key="consult" type="primary" onClick={consult}>咨询顾问</Button>,
+          <Button key="consult" type="primary" onClick={consult}>向顾问咨询此产品</Button>,
         ]}
         onCancel={() => setSelectedProduct(null)}
-        width={620}
+        width={640}
       >
         {selectedProduct ? (
           <div className="product-detail">
@@ -201,9 +307,9 @@ export function HomePage({
               <div><dt>承保公司</dt><dd>{selectedProduct.insurer}</dd></div>
               <div><dt>保险类型</dt><dd>{CATEGORY_LABELS[selectedProduct.category]}</dd></div>
               <div><dt>适合人群</dt><dd>{selectedProduct.target_group}</dd></div>
-              <div><dt>保费参考</dt><dd>¥{selectedProduct.min_premium.toLocaleString('zh-CN')} 起/年</dd></div>
+              <div><dt>参考起步价</dt><dd>¥{selectedProduct.min_premium.toLocaleString('zh-CN')} 起 / 年</dd></div>
             </dl>
-            <h4>产品亮点</h4>
+            <h4>核心保障亮点</h4>
             <ul>{selectedProduct.highlights.map((item) => <li key={item}>{item}</li>)}</ul>
           </div>
         ) : null}

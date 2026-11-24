@@ -392,9 +392,28 @@ export function AdvisorPage({ session, onBack, onSessionExpired, onApplyProduct 
               <div className="chat-loading"><Spin /></div>
             ) : messages.length === 0 ? (
               <div className="chat-empty">
-                <CustomerServiceOutlined />
-                <h1>你好，我是安心保智能顾问</h1>
-                <p>告诉我你的年龄、职业、预算和关注的保障类型，我会协助你梳理保险方案。</p>
+                <div className="chat-empty__emblem">
+                  <CustomerServiceOutlined />
+                </div>
+                <span className="chat-empty__kicker">PRIVATE INSURANCE ADVISORY</span>
+                <h1>你好，我是安心保私享智能顾问</h1>
+                <p>告诉我您的年龄、职业、预算和关注的保障类型，我将结合官方费率表与备案条款为您梳理配置方案。</p>
+                <div className="chat-empty__prompts" aria-label="快捷示例提问">
+                  {[
+                    '30岁男性有医保，年预算3500元，请推荐医疗险和重疾险组合',
+                    '对比星相守2号和众安尊享e生2026版的免赔额与外购药条款',
+                    '帮我查一下当前名下的生效保单和理赔申请指南',
+                  ].map((prompt) => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      className="prompt-chip"
+                      onClick={() => setInput(prompt)}
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : (
               messages.map((message, index) => (
