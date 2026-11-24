@@ -216,11 +216,12 @@ def build_insurance_advisor_graph(
             if not isinstance(parsed, dict):
                 continue
 
-            if tmsg.name == "query_product_clause" or "source_ids" in parsed:
+            if (tmsg.name == "query_product_clause" and parsed.get("status") == "ok") or parsed.get("source_ids"):
                 rag_used = True
                 for sid in parsed.get("source_ids") or []:
-                    if sid not in source_ids:
-                        source_ids.append(str(sid))
+                    sid_str = str(sid)
+                    if sid_str not in source_ids:
+                        source_ids.append(sid_str)
 
             if parsed.get("status") == "draft_submitted" and isinstance(parsed.get("plan_draft"), dict):
                 pending_draft = parsed["plan_draft"]
@@ -256,8 +257,15 @@ def build_insurance_advisor_graph(
 
         if all_errors and retry_count < 1:
             logger.warning("确定性护栏触发纠偏", errors=all_errors, retry_count=retry_count)
+            feedback_parts = list(all_errors)
+            if draft_errors:
+                feedback_parts.append(
+                    "若用户要求的产品违反承保年龄/职业/预算约束，请先调用 recommend_insurance_portfolio "
+                    "查询产品库内符合该条件的合规替代产品；若有合适替代品则说明原产品不可投保的原因并基于合规产品调整建议，"
+                    "若产品库内确无符合该险种承保条件的产品则明确告知并拒绝提交草稿。"
+                )
             updates: dict[str, Any] = {
-                "guardrail_feedback": "；".join(all_errors),
+                "guardrail_feedback": "；".join(feedback_parts),
                 "guardrail_retry_count": retry_count + 1,
             }
             if draft_errors:
@@ -286,7 +294,7 @@ def build_insurance_advisor_graph(
                 reject_updates["messages"] = [new_reject_msg]
             return Command(update=reject_updates, goto="deliver_answer")
 
-        # 确定性兜底收口：剥离思维标签与虚构 [ref-xxx]，并在 RAG 漏标时自动补附真实出处
+        # 确定性净化收口：仅剥离思维标签与虚假引用编号，不在文末强制硬凑脚标
         final_text = sanitize_citations(raw_text, valid_ids, rag_used)
         final_updates: dict[str, Any] = {
             "guardrail_feedback": None,

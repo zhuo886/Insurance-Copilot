@@ -45,8 +45,15 @@ async def close_database() -> None:
     await engine.dispose()
     logger.info("数据库连接池已关闭~")
 
-# 6. 数据库健康检查
+# 6. 数据库健康检查与轻量幂等列补齐
 async def check_database() -> None:
-    async with engine.connect() as connection:
+    async with engine.begin() as connection:
         await connection.execute(text("SELECT 1"))
+        await connection.execute(
+            text(
+                "ALTER TABLE IF EXISTS insurance_plans "
+                "ADD COLUMN IF NOT EXISTS budget_note TEXT, "
+                "ADD COLUMN IF NOT EXISTS version INT NOT NULL DEFAULT 1"
+            )
+        )
     logger.info("数据库连接池初始化成功~✅️")

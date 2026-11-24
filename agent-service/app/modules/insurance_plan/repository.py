@@ -1,7 +1,7 @@
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select, text
+from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.insurance_plan.models import (
@@ -17,6 +17,25 @@ from app.modules.product.models import Product
 class InsurancePlanRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
+
+    async def list_owned_plans(self, user_id: int) -> list[InsurancePlan]:
+        rows = await self.session.scalars(
+            select(InsurancePlan)
+            .where(InsurancePlan.user_id == user_id)
+            .order_by(InsurancePlan.updated_at.desc(), InsurancePlan.created_at.desc())
+        )
+        return list(rows.all())
+
+    async def find_current_plan(self, user_id: int) -> InsurancePlan | None:
+        return await self.session.scalar(
+            select(InsurancePlan)
+            .where(
+                InsurancePlan.user_id == user_id,
+                InsurancePlan.status != "insured",
+            )
+            .order_by(InsurancePlan.updated_at.desc(), InsurancePlan.created_at.desc())
+            .limit(1)
+        )
 
     async def find_owned_plan(self, plan_id: UUID, user_id: int) -> InsurancePlan | None:
         return await self.session.scalar(
@@ -46,11 +65,19 @@ class InsurancePlanRepository:
             )
         )
 
+    async def find_product(self, product_id: int) -> Product | None:
+        return await self.session.scalar(select(Product).where(Product.id == product_id))
+
     async def list_plan_items(self, plan_id: UUID) -> list[InsurancePlanItem]:
         rows = await self.session.scalars(
             select(InsurancePlanItem).where(InsurancePlanItem.plan_id == plan_id)
         )
         return list(rows.all())
+
+    async def delete_plan_items(self, plan_id: UUID) -> None:
+        await self.session.execute(
+            delete(InsurancePlanItem).where(InsurancePlanItem.plan_id == plan_id)
+        )
 
     async def add_plan(self, plan: InsurancePlan) -> None:
         self.session.add(plan)
@@ -95,8 +122,16 @@ class InsurancePlanRepository:
         )
         return [(row[0], row[1]) for row in rows.all()]
 
-    async def find_rate_table_items(self, product_ids: list[int] | None = None) -> dict[int, list[dict[str, Any]]]:
-        sql = "SELECT product_id, plan_code, rate_type, age_min, age_max, gender, occupation_class, social_security, payment_period, coverage_period, coverage_amount, deductible, rate_value, premium FROM rate_table_items WHERE status = 'active'"
+    async def find_rate_table_items(
+        self,
+        product_ids: list[int] | None = None,
+    ) -> dict[int, list[dict[str, Any]]]:
+        sql = (
+            "SELECT product_id, plan_code, rate_type, age_min, age_max, gender, "
+            "occupation_class, social_security, payment_period, coverage_period, "
+            "coverage_amount, deductible, rate_value, premium, source_page, source_table "
+            "FROM rate_table_items WHERE status = 'active'"
+        )
         params: dict[str, Any] = {}
         if product_ids:
             sql += " AND product_id = ANY(:pids)"

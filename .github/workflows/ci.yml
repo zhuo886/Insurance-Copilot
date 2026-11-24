@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  backend-test:
+    name: 后端离线单元与接口测试
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent-service
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 uv 与 Python
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.14"
+
+      - name: 安装后端依赖
+        run: uv sync --dev
+
+      - name: 运行 pytest 离线测试
+        env:
+          APP_ENV: test
+          DASHSCOPE_API_KEY: ci-dummy-dashscope-key
+          MINERU_TOKEN: ci-dummy-mineru-token
+          JWT_SECRET_KEY: ci-dummy-jwt-secret-key-for-tests-only
+        run: uv run pytest -v
+
+  frontend-build:
+    name: 前端类型检查与构建
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 安装前端依赖
+        run: npm ci
+
+      - name: 执行 TypeScript 检查与 Vite 构建
+        run: npm run build

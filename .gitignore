@@ -5,6 +5,9 @@
 agent-service/.env
 agent-service/.env.*
 !agent-service/.env.example
+deploy/.env
+deploy/.env.*
+!deploy/.env.example
 deploy/milvus/user.yaml
 
 # 教程草稿与临时笔记本（可能包含本地调试输出）
@@ -34,5 +37,6 @@ frontend/tsconfig.tsbuildinfo
 .DS_Store
 Thumbs.db
 
-# 中间原始解析缓存（保留 .md 结果可按需复用，忽略 .raw.md 原始大缓存）
+# 原始商业保险 PDF 文件与原始解析缓存（保留解析后 .md / 费率 json 即可复现）
+agent-service/data/raw/
 agent-service/data/parsed/*.raw.md

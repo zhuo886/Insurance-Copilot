@@ -83,7 +83,7 @@ async def test_parallel_compare_retrieval_prevents_single_product_dominance():
     assert [c.product_id for c in results] == [4, 6, 4, 6]
 
 
-async def test_virtual_product_without_clauses_triggers_structured_fallback():
+async def test_missing_clause_returns_empty_without_fabrication():
     class EmptyVectorStore:
         async def asimilarity_search(self, query, k, fetch_k=10, expr=None, reranker=None):
             return []
@@ -97,11 +97,8 @@ async def test_virtual_product_without_clauses_triggers_structured_fallback():
         vector_store=EmptyVectorStore(),  # type: ignore[arg-type]
         session_factory=broken_session,
     )
-    chunks = await retriever.retrieve("这款产品保什么", k=3, product_id=13)
-    assert len(chunks) == 1
-    assert chunks[0].product_id == 13
-    assert "平安长相安2号" in chunks[0].clause_name
-    assert "结构化" in chunks[0].content
+    chunks = await retriever.retrieve("这款产品保什么", k=3, product_id=999)
+    assert chunks == []
 
 
 def test_merge_round_robin_caps_at_k():

@@ -40,7 +40,7 @@ def _get_user_id(config: RunnableConfig | None) -> int:
 
 
 async def _load_catalog_candidates() -> list[ProductCandidate]:
-    """优先从 PG 读取全量产品与结构化特征，不可用时无缝回退内置 50 款目录。"""
+    """优先从 PG 读取全量产品与结构化特征，不可用时无缝回退内置 12 款真实目录。"""
     try:
         async with AsyncSessionFactory() as session:
             repo = ProductRepository(session)
@@ -112,7 +112,7 @@ async def _load_catalog_candidates() -> list[ProductCandidate]:
                 )
             return candidates
     except Exception as exc:
-        logger.warning("从数据库加载产品特征失败，回退内置 50 款目录", error=str(exc))
+        logger.warning("从数据库加载产品特征失败，回退内置 12 款目录", error=str(exc))
 
     return load_builtin_catalog()
 
@@ -223,6 +223,8 @@ async def recommend_insurance_portfolio(
                 "has_clause": x.product.has_clause,
                 "estimated_annual_premium": x.estimate.annual_premium,
                 "pricing_mode": x.estimate.pricing_mode,
+                "is_estimated": x.estimate.is_estimated,
+                "pricing_disclaimer": x.estimate.pricing_disclaimer,
                 "highlights": x.product.highlights,
                 "score_breakdown": x.scores.model_dump(),
             }
@@ -279,7 +281,12 @@ async def query_product_clause(
     )
     if not chunks:
         return json.dumps(
-            {"status": "empty", "source_ids": [], "sources": {}, "message": "没有查询到相关保险条款。"},
+            {
+                "status": "empty",
+                "source_ids": [],
+                "sources": {},
+                "message": "未在条款知识库中检索到该产品的真实合同条款原文，暂不作条款级解读。",
+            },
             ensure_ascii=False,
         )
 
@@ -381,6 +388,8 @@ async def quote_premium(
         "product_name": product.name,
         "annual_premium": estimate.annual_premium,
         "pricing_mode": estimate.pricing_mode,
+        "is_estimated": estimate.is_estimated,
+        "pricing_disclaimer": estimate.pricing_disclaimer,
         "plan_code": estimate.plan_code,
         "breakdown": estimate.breakdown,
     }
@@ -474,6 +483,32 @@ async def query_user_policies_and_claims(config: RunnableConfig | None = None) -
         _safe_stream_write({"policies": data["policies"]})
 
     return json.dumps({"status": "ok", **data}, ensure_ascii=False)
+
+
+@tool
+async def get_claim_guide(
+    policy_id: str,
+    config: RunnableConfig | None = None,
+) -> str:
+    """根据用户保单 UUID 生成结构化理赔指引（报案步骤、所需材料清单与申请表 PDF 下载地址）。"""
+    from uuid import UUID
+
+    from app.modules.claim.service import ClaimService
+
+    user_id = _get_user_id(config)
+    try:
+        pid = UUID(str(policy_id).strip())
+    except ValueError:
+        return json.dumps({"status": "error", "message": "policy_id 格式非法，需为保单 UUID"}, ensure_ascii=False)
+
+    async with AsyncSessionFactory() as session:
+        service = ClaimService(session)
+        try:
+            guide = await service.get_claim_guide(user_id=user_id, policy_id=pid)
+        except Exception as exc:
+            return json.dumps({"status": "error", "message": str(exc)}, ensure_ascii=False)
+
+    return json.dumps({"status": "ok", **guide.model_dump(mode="json")}, ensure_ascii=False)
 
 
 # 保留兼容别名，防止旧调试脚本引用报错

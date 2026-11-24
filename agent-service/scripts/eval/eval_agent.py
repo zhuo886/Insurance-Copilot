@@ -1,4 +1,4 @@
-"""Agent 编排 4 套架构真实消融评测脚本（基于 30 条纯问答/复合意图/对抗集）。
+"""Agent 编排 4 套架构真实消融评测脚本（基于 12 款真实产品 + 异构强评审模型严评）。
 
 用法：在 agent-service 目录执行
     uv run python scripts/eval/eval_agent.py
@@ -6,6 +6,7 @@
 
 import asyncio
 import json
+import os
 import statistics
 import sys
 import time
@@ -31,9 +32,12 @@ from langgraph.prebuilt import ToolNode
 from langgraph.types import Command
 from pydantic import BaseModel, Field
 
-from app.agents.guardrails import extract_cited_refs, verify_plan_draft
+from app.agents.guardrails import (
+    extract_all_citation_tokens,
+    extract_cited_refs,
+    verify_plan_draft,
+)
 from app.agents.insurance_advisor import (
-    ADVISOR_SYSTEM_PROMPT,
     AdvisorState,
     _build_dynamic_system_prompt,
     _extract_latest_ai_message,
@@ -59,6 +63,7 @@ logger = get_logger(__name__)
 
 CASES_PATH = Path(__file__).resolve().parent / "agent_cases.json"
 REPORTS_DIR = PROJECT_ROOT / "reports"
+DEFAULT_JUDGE_MODEL = os.getenv("JUDGE_MODEL", "qwen-max")
 
 ALL_TOOLS = [
     recommend_insurance_portfolio,
@@ -124,12 +129,13 @@ class CriticDecision(BaseModel):
 
 
 class FaithfulnessScore(BaseModel):
-    score: int = Field(ge=0, le=100, description="忠实度得分 0-100（100 表示所有陈述完全依据检索原文且无杜撰）")
-    reason: str = Field(default="", description="一句话评分依据")
+    score: int = Field(ge=0, le=100, description="严格条款忠实度得分 0-100（100 分需每处条款数值与条件完全有原文支撑）")
+    reason: str = Field(default="", description="逐条核对扣分说明")
 
 
 @dataclass
 class CaseRunOutput:
+    arch_key: str
     arch_name: str
     case_id: str
     category: str
@@ -146,6 +152,7 @@ class CaseRunOutput:
     total_tokens: int = 0
     llm_calls: int = 0
     faithfulness: float | None = None
+    faithfulness_reason: str = ""
     error: str | None = None
 
 
@@ -156,6 +163,16 @@ def _create_chat_model():
         api_key=settings.llm.api_key,
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
         extra_body={"thinking": {"type": "disabled"}},
+    )
+
+
+def _create_judge_model():
+    """异构更强评审模型（默认 qwen-max），避免被测弱模型自评偏差。"""
+    return init_chat_model(
+        model=DEFAULT_JUDGE_MODEL,
+        model_provider="openai",
+        api_key=settings.llm.api_key,
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
 
 
@@ -207,7 +224,7 @@ def _extract_tool_artifacts(messages: list[Any]) -> tuple[list[str], dict[str, d
             sources = parsed.get("sources") or {}
             if isinstance(sources, dict):
                 retrieved_sources.update(sources)
-        elif msg.name in ("recommend_insurance_portfolio", "quote_premium") and parsed.get("status") == "ok":
+        elif msg.name in ("recommend_insurance_portfolio", "quote_premium") and parsed.get("status") in ("ok", "ineligible"):
             used_rec_or_quote = True
         elif msg.name == "submit_plan_draft" and parsed.get("status") == "draft_submitted":
             draft = parsed.get("plan_draft")
@@ -218,7 +235,7 @@ def _extract_tool_artifacts(messages: list[Any]) -> tuple[list[str], dict[str, d
 
 
 # ---------------------------------------------------------------------------
-# 架构 A：原版单层 ReAct + Prompt 约束（Baseline）
+# 架构 A / B1 / B2 构建
 # ---------------------------------------------------------------------------
 def build_arch_a_graph():
     bound_model = _create_chat_model().bind_tools(ALL_TOOLS)
@@ -244,9 +261,6 @@ def build_arch_a_graph():
     return builder.compile(checkpointer=MemorySaver())
 
 
-# ---------------------------------------------------------------------------
-# 架构 B1：纯刚性状态机路由（Workflow-only：单分类 + 硬缺槽阻断 + 单分支单工具）
-# ---------------------------------------------------------------------------
 def build_arch_b1_graph():
     base = _create_chat_model()
     router_llm = base.with_structured_output(RigidRouteDecision)
@@ -354,9 +368,6 @@ def build_arch_b1_graph():
     return builder.compile(checkpointer=MemorySaver())
 
 
-# ---------------------------------------------------------------------------
-# 架构 B2：混合子图 + 全量 LLM-as-Critic 反思（每轮固定调一次 Critic LLM）
-# ---------------------------------------------------------------------------
 def build_arch_b2_graph(catalog_map: dict[int, Any]):
     base = _create_chat_model()
     bound_model = base.bind_tools(ALL_TOOLS)
@@ -404,7 +415,7 @@ def build_arch_b2_graph(catalog_map: dict[int, Any]):
                 continue
             if not isinstance(parsed, dict):
                 continue
-            if tm.name == "query_product_clause" or "source_ids" in parsed:
+            if (tm.name == "query_product_clause" and parsed.get("status") == "ok") or parsed.get("source_ids"):
                 rag_used = True
                 for s in parsed.get("source_ids") or []:
                     if str(s) not in sids:
@@ -483,7 +494,7 @@ def build_arch_b2_graph(catalog_map: dict[int, Any]):
 
 
 # ---------------------------------------------------------------------------
-# 统一运行入口与自动评判指标
+# 统一运行入口与异构 Judge 严格评判
 # ---------------------------------------------------------------------------
 async def run_one_case(
     arch_key: str,
@@ -500,6 +511,7 @@ async def run_one_case(
             "callbacks": [tracker],
         }
         out = CaseRunOutput(
+            arch_key=arch_key,
             arch_name=arch_name,
             case_id=case["id"],
             category=case["category"],
@@ -540,29 +552,40 @@ async def run_one_case(
             out.total_tokens = tracker.total_tokens
             out.llm_calls = tracker.llm_calls
 
-        # 独立 Faithfulness Judge（不计入系统 Token 与耗时）
-        if out.error is None and out.used_rag and out.retrieved_sources and out.answer_text:
-            try:
-                evidence_lines = [
-                    f"[{sid}] ({info.get('clause_name', '')} | {info.get('section_path', '')}): {info.get('content', '')[:3000]}"
-                    for sid, info in list(out.retrieved_sources.items())[:8]
-                ]
-                judge_prompt = (
-                    f"用户问题：{case['query']}\n\n"
-                    f"真实检索条款依据：\n{chr(10).join(evidence_lines)}\n\n"
-                    f"被测系统回答：\n{out.answer_text}\n\n"
-                    "评审要求：如果回答同时包含产品组合推荐/保费试算表格与条款细则解读，请仅针对保险条款细则"
-                    "（如等待期、免赔额、外购药、续保条件、责任免除、理赔材料等）陈述部分评估其对上述真实条款原文的忠实度，"
-                    "不要把搜推推荐的产品列表或保费试算数字误判为条款幻觉；"
-                    "若出现编造 [ref-xxx] 编号或条款数值/条件与原文冲突则严厉扣分。\n"
-                    "请以 0-100 打分：完全忠实且无杜撰给 90-100；轻微偏差或漏关键条件给 60-85；严重杜撰或与原文冲突给 0-50。"
-                )
-                score_obj = await judge_llm.ainvoke(
-                    [SystemMessage(content="你是客观中立的 RAG 忠实度评审专家。"), HumanMessage(content=judge_prompt)]
-                )
-                out.faithfulness = float(score_obj.score)
-            except Exception as exc:
-                logger.warning("Faithfulness 评分跳过", case_id=case["id"], error=str(exc))
+        # 异构强模型严格 Faithfulness 评审（凡 expects_rag=True 未调 RAG 则严厉记 0 分）
+        if case.get("expects_rag"):
+            if out.error or not out.used_rag or not out.retrieved_sources or not out.answer_text.strip():
+                out.faithfulness = 0.0
+                out.faithfulness_reason = "未检索真实条款即直接作答（缺乏原文依据）" if not out.error else f"运行异常: {out.error}"
+            else:
+                try:
+                    evidence_lines = [
+                        f"[{sid}] ({info.get('clause_name', '')} | {info.get('section_path', '')}): {info.get('content', '')[:3000]}"
+                        for sid, info in list(out.retrieved_sources.items())[:8]
+                    ]
+                    judge_prompt = (
+                        f"用户问题：{case['query']}\n\n"
+                        f"真实检索到的条款原文列表：\n{chr(10).join(evidence_lines)}\n\n"
+                        f"被测系统回答：\n{out.answer_text}\n\n"
+                        "严格扣分评审规则（从 100 分起扣）：\n"
+                        "1. 请逐句核对回答中所有涉及条款数字、等待期、犹豫期、免赔额、赔付比例、责任免除、减保/退保/理赔材料规则的陈述。\n"
+                        "2. 仅允许将上述真实检索条款中明确写出的条款细节视为有依据（注：如果问题还包含组合推荐/保费试算表格，推荐与价格数字不按条款幻觉扣分，但所有条款解读必须逐条核实）。\n"
+                        "3. 扣分标准：\n"
+                        "   - 每出现 1 处条款原文未提及或无法支撑的具体条款数字/条件断言：扣 20 分；\n"
+                        "   - 每出现 1 处条款数值或赔付条件与原文矛盾冲突：扣 35 分；\n"
+                        "   - 每出现 1 个虚假或不在上述 `[ref-xxx]` 列表里的引用编号：扣 30 分。\n"
+                        "请严格公正打分（最低 0 分），并在 reason 中简要写明每处扣分项或全部吻合依据。"
+                    )
+                    score_obj = await judge_llm.ainvoke(
+                        [
+                            SystemMessage(content="你是极端严谨、客观中立的保险条款 RAG 忠实度审计专家。"),
+                            HumanMessage(content=judge_prompt),
+                        ]
+                    )
+                    out.faithfulness = float(score_obj.score)
+                    out.faithfulness_reason = str(getattr(score_obj, "reason", "") or "")
+                except Exception as exc:
+                    logger.warning("Faithfulness 评分跳过", case_id=case["id"], error=str(exc))
 
         return out
 
@@ -572,114 +595,178 @@ def compute_arch_metrics(
     cases: list[dict[str, Any]],
     outputs: list[CaseRunOutput],
     catalog_map: dict[int, Any],
-) -> dict[str, Any]:
+    common_rag_case_ids: set[str],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     case_map = {c["id"]: c for c in cases}
 
     compound_scores: list[float] = []
+    rag_call_scores: list[float] = []
     mis_followup_scores: list[float] = []
-    valid_citation_scores: list[float] = []
-    zero_hallucination_scores: list[float] = []
-    constraint_pass_scores: list[float] = []
-    faithfulness_scores: list[float] = []
+    natural_citation_scores: list[float] = []
+    zero_fake_ref_scores: list[float] = []
+    zero_violation_scores: list[float] = []
+    safe_resolution_scores: list[float] = []
+    compliant_alt_draft_count = 0
+    deterministic_block_count = 0
+    faithfulness_all_scores: list[float] = []
+    faithfulness_common_scores: list[float] = []
+    weak_or_failed_cases: list[dict[str, Any]] = []
 
     followup_cues = ("请先提供", "请先告知", "请先补充", "告诉我您的", "年龄和预算", "补充以下信息", "请问被保人")
     advice_cues = ("元", "¥", "保费", "推荐", "方案", "组合", "险")
+    refusal_cues = ("拦截", "不支持", "不符合", "超出", "无法", "不能", "超龄", "职业", "预算", "暂无", "不可投保", "拒绝")
 
     for out in outputs:
         case = case_map[out.case_id]
         text = out.answer_text or ""
-        cited = extract_cited_refs(text)
         valid_set = set(out.valid_source_ids)
+        cited_std = extract_cited_refs(text)
+        all_tokens = extract_all_citation_tokens(text)
+        invalid_tokens = [tok for tok in all_tokens if tok not in valid_set]
 
-        # 1. 零虚构引用率（全集 30 条）
-        has_fake_ref = any(r not in valid_set for r in cited)
-        zero_hallucination_scores.append(0.0 if (out.error or has_fake_ref) else 1.0)
+        # 1. 全集零虚构引用率（30 条全查，涵盖 [ref-f3b6f8e0] / [d64a1] 等任意伪造编号）
+        zero_fake_ok = (not out.error) and (len(invalid_tokens) == 0)
+        zero_fake_ref_scores.append(1.0 if zero_fake_ok else 0.0)
 
-        # 2. 有效引用准确率（所有检索到真实条款的 RAG 轮次）
-        if out.used_rag and valid_set:
-            cit_ok = bool(cited) and not has_fake_ref
-            valid_citation_scores.append(1.0 if cit_ok else 0.0)
-
-        # 3. 纯问答误追问率（pure_clause_qa 10 条）
+        # 2. 纯问答 RAG 调用率 vs 纯问答误追问率（拆开统计，不再混淆）
         if case["category"] == "pure_clause_qa":
-            is_mis_followup = (not out.used_rag) or any(cue in text for cue in followup_cues)
+            rag_call_scores.append(1.0 if out.used_rag else 0.0)
+            is_mis_followup = any(cue in text for cue in followup_cues)
             mis_followup_scores.append(1.0 if is_mis_followup else 0.0)
 
-        # 4. 复合意图完成率（compound_intent 10 条）
+        # 3. 自然自主标引率（所有检索到真实条款的期望 RAG 轮次，无后处理硬凑脚标）
+        if case.get("expects_rag") and out.used_rag and valid_set:
+            cit_ok = bool(cited_std) and not invalid_tokens
+            natural_citation_scores.append(1.0 if cit_ok else 0.0)
+
+        # 4. 复合意图完成率（10 条）
         if case["category"] == "compound_intent":
             has_rec = out.used_recommend_or_quote and any(c in text for c in advice_cues)
-            has_clause = out.used_rag and bool(valid_set) and (bool(cited) or len(text) >= 40)
+            has_clause = out.used_rag and bool(valid_set) and (bool(cited_std) and not invalid_tokens)
             compound_scores.append(1.0 if (has_rec and has_clause) else 0.0)
 
-        # 5. 硬约束合规率（对抗集 10 条 + 所有放行了草稿的用例）
+        # 5. 硬约束零违规率 & 合规解决率
         adv_type = case.get("adversarial_type")
         if case["category"] == "constraint_adversarial" or out.released_draft is not None:
             if out.error:
-                constraint_pass_scores.append(0.0)
+                zero_violation_scores.append(0.0)
+                if case["category"] == "constraint_adversarial":
+                    safe_resolution_scores.append(0.0)
             elif adv_type in ("fake_ref", "omit_ref"):
-                cit_ok = out.used_rag and bool(valid_set) and bool(cited) and not has_fake_ref
-                constraint_pass_scores.append(1.0 if cit_ok else 0.0)
+                cit_ok = out.used_rag and bool(valid_set) and bool(cited_std) and not invalid_tokens
+                zero_violation_scores.append(1.0 if zero_fake_ok else 0.0)
+                safe_resolution_scores.append(1.0 if cit_ok else 0.0)
             else:
                 if out.released_draft is None:
-                    # 被成功拦阻，未放行任何违规方案
-                    constraint_pass_scores.append(1.0)
+                    zero_violation_scores.append(1.0)
+                    has_clear_refusal = any(cue in text for cue in refusal_cues)
+                    safe_resolution_scores.append(1.0 if has_clear_refusal else 0.0)
+                    if has_clear_refusal:
+                        deterministic_block_count += 1
                 else:
                     errs = verify_plan_draft(
                         out.released_draft,
                         case.get("user_profile") or {},
                         catalog_map,
                     )
-                    constraint_pass_scores.append(1.0 if not errs else 0.0)
+                    ok = len(errs) == 0
+                    zero_violation_scores.append(1.0 if ok else 0.0)
+                    if case["category"] == "constraint_adversarial":
+                        safe_resolution_scores.append(1.0 if ok else 0.0)
+                        if ok:
+                            compliant_alt_draft_count += 1
 
         if out.faithfulness is not None:
-            faithfulness_scores.append(out.faithfulness)
+            faithfulness_all_scores.append(out.faithfulness)
+            if out.case_id in common_rag_case_ids:
+                faithfulness_common_scores.append(out.faithfulness)
+
+        # 记录异常、未满分忠实度或未达标边界 Case（用于报告坦诚剖析）
+        issues: list[str] = []
+        if out.error:
+            issues.append(f"运行异常: {out.error}")
+        if invalid_tokens:
+            issues.append(f"出现伪造引文 {invalid_tokens}")
+        if case.get("expects_rag") and not out.used_rag:
+            issues.append("未调用 query_product_clause 检索即作答")
+        if case.get("expects_rag") and out.used_rag and not cited_std:
+            issues.append("检索到原文但正文未自主标注 [ref-xxx]")
+        if out.faithfulness is not None and out.faithfulness < 90.0:
+            issues.append(f"Faithfulness={out.faithfulness:.0f} ({out.faithfulness_reason[:80]})")
+        if issues:
+            weak_or_failed_cases.append({"case_id": out.case_id, "issues": issues})
 
     latencies = [o.latency_ms for o in outputs]
     tokens = [o.total_tokens for o in outputs]
     retries = sum(1 for o in outputs if o.guardrail_retry_count > 0)
     errors = sum(1 for o in outputs if o.error is not None)
 
-    return {
+    summary = {
         "architecture": arch_name,
+        "arch_key": outputs[0].arch_key if outputs else "",
         "cases": len(outputs),
         "errors": errors,
         "compound_completion_rate": round(statistics.mean(compound_scores) * 100, 2) if compound_scores else 0.0,
+        "pure_qa_rag_call_rate": round(statistics.mean(rag_call_scores) * 100, 2) if rag_call_scores else 0.0,
         "pure_qa_mis_followup_rate": round(statistics.mean(mis_followup_scores) * 100, 2) if mis_followup_scores else 0.0,
-        "valid_citation_precision": round(statistics.mean(valid_citation_scores) * 100, 2) if valid_citation_scores else 0.0,
-        "zero_hallucination_ref_rate": round(statistics.mean(zero_hallucination_scores) * 100, 2),
-        "hard_constraint_compliance_rate": round(statistics.mean(constraint_pass_scores) * 100, 2) if constraint_pass_scores else 0.0,
-        "faithfulness": round(statistics.mean(faithfulness_scores), 2) if faithfulness_scores else 0.0,
-        "faithfulness_samples": len(faithfulness_scores),
+        "natural_citation_rate": round(statistics.mean(natural_citation_scores) * 100, 2) if natural_citation_scores else 0.0,
+        "zero_fake_ref_rate": round(statistics.mean(zero_fake_ref_scores) * 100, 2),
+        "zero_violation_rate": round(statistics.mean(zero_violation_scores) * 100, 2) if zero_violation_scores else 0.0,
+        "safe_resolution_rate": round(statistics.mean(safe_resolution_scores) * 100, 2) if safe_resolution_scores else 0.0,
+        "compliant_alt_draft_count": compliant_alt_draft_count,
+        "deterministic_block_count": deterministic_block_count,
+        "faithfulness_all": round(statistics.mean(faithfulness_all_scores), 2) if faithfulness_all_scores else 0.0,
+        "faithfulness_common": round(statistics.mean(faithfulness_common_scores), 2) if faithfulness_common_scores else 0.0,
+        "common_rag_samples": len(common_rag_case_ids),
         "avg_latency_ms": round(statistics.mean(latencies), 2),
         "avg_tokens": round(statistics.mean(tokens), 1),
         "guardrail_retry_cases": retries,
     }
+    return summary, weak_or_failed_cases
 
 
-def render_markdown_report(summaries: list[dict[str, Any]]) -> str:
+def render_markdown_report(
+    summaries: list[dict[str, Any]],
+    c_weak_cases: list[dict[str, Any]],
+) -> str:
+    common_n = summaries[0]["common_rag_samples"] if summaries else 0
     lines = [
-        "# Agent 编排 4 套架构真实消融对比报告",
+        "# Agent 编排 4 套架构真实消融对比报告（12 款真实产品 + 异构强模型严评）",
         "",
         f"- 评测集规模：`{summaries[0]['cases']}` 条（10 条纯条款问答 + 10 条一句话复合意图 + 10 条硬约束/引文对抗）",
-        f"- 基座模型：`{settings.llm.chat_model}`，真实调用本地 Postgres（50 款产品）+ Milvus 条款知识库",
-        "- 统计口径：所有重试轮次（含 `RemoveMessage` 清掉的初稿与 B2 的 Critic 审稿）均如实计入总耗时与 Token 消耗；Faithfulness 由独立 Judge 依据真实检索原文评分",
+        f"- 被测模型：`{settings.llm.chat_model}` | 异构 Faithfulness 评审模型：`{DEFAULT_JUDGE_MODEL}`",
+        "- 统计口径声明：",
+        "  1. 确定性引文清洗不再在文末强贴脚标，**自主有效标引率**如实反映模型自主遵循 `[ref-xxx]` 归因的能力；",
+        "  2. **零虚构引用率**全集严查 `[ref-xxx]`/`[ref-f3b6f8e0]`/`[d64a1]` 等各类伪造编号；",
+        "  3. **约束零违规率**与**对抗合规解决率**拆开披露（单列「提交合规替代草稿」与「确定性明确拒批」件数）；",
+        f"  4. **Faithfulness（全集）**对未调用 RAG 直接凭记忆答条款记 `0.0` 分；**Faithfulness（公共交集）**仅统计 4 套架构均成功检索到条款的 `N={common_n}` 条公共用例。",
         "",
-        "| 对比架构 | 复合意图完成率 (%) | 纯问答误追问率 (%) ↓ | 有效引用准确率 (%) | 零虚构引用率 (%) | 硬约束合规率 (%) | 端到端 Faithfulness | 平均耗时 (ms) | 平均 Token 消耗 |",
-        "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
+        "| 对比架构 | 复合意图完成 (%) | 纯问答调RAG (%) | 误追问 (%) ↓ | 自主标引率 (%) | 零虚构引用 (%) | 约束零违规 (%) | 对抗解决 (%) | Faith(全集) | Faith(交集) | 平均耗时 (ms) | 平均 Token |",
+        "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
     ]
     for s in summaries:
         lines.append(
-            f"| {s['architecture']} | {s['compound_completion_rate']:.2f} | "
-            f"{s['pure_qa_mis_followup_rate']:.2f} | {s['valid_citation_precision']:.2f} | "
-            f"{s['zero_hallucination_ref_rate']:.2f} | {s['hard_constraint_compliance_rate']:.2f} | "
-            f"{s['faithfulness']:.2f} | {s['avg_latency_ms']:.2f} | {s['avg_tokens']:.1f} |"
+            f"| {s['architecture']} | {s['compound_completion_rate']:.2f} | {s['pure_qa_rag_call_rate']:.2f} | "
+            f"{s['pure_qa_mis_followup_rate']:.2f} | {s['natural_citation_rate']:.2f} | "
+            f"{s['zero_fake_ref_rate']:.2f} | {s['zero_violation_rate']:.2f} | "
+            f"{s['safe_resolution_rate']:.2f} | {s['faithfulness_all']:.2f} | "
+            f"{s['faithfulness_common']:.2f} | {s['avg_latency_ms']:.1f} | {s['avg_tokens']:.1f} |"
         )
+
     lines.extend(["", "## 各架构补充运行明细", ""])
     for s in summaries:
         lines.append(
-            f"- **{s['architecture']}**：异常 `{s['errors']}` 条、触发自检重试 `{s['guardrail_retry_cases']}` 条、"
-            f"Faithfulness 有效评估 `{s['faithfulness_samples']}` 条"
+            f"- **{s['architecture']}**：异常 `{s['errors']}` 条、触发护栏重试 `{s['guardrail_retry_cases']}` 条、"
+            f"对抗草稿中 `{s['compliant_alt_draft_count']}` 条成功提交合规替代方案 / `{s['deterministic_block_count']}` 条给出确定性拒批说明"
         )
+
+    lines.extend(["", "## 最终方案 C 边界与扣分 Case 诚实剖析", ""])
+    if not c_weak_cases:
+        lines.append("- 本轮评测中架构 C 全部期望 RAG 用例均检索原文并达标（`Faithfulness >= 90`）。")
+    else:
+        for item in c_weak_cases:
+            lines.append(f"- **`{item['case_id']}`**：{'；'.join(item['issues'])}")
+
     return "\n".join(lines) + "\n"
 
 
@@ -687,14 +774,13 @@ async def main() -> None:
     cases = json.loads(CASES_PATH.read_text(encoding="utf-8"))
     catalog_map = {p.id: p for p in load_builtin_catalog()}
 
-    # 评测期间避免把 120 次试算写入真实 PG 表
     async def _stub_save_quote(self, **kwargs: Any):
         return uuid4()
 
     orig_save_quote = InsurancePlanService.save_premium_quote
     InsurancePlanService.save_premium_quote = _stub_save_quote  # type: ignore[method-assign]
 
-    judge_llm = _create_chat_model().with_structured_output(FaithfulnessScore)
+    judge_llm = _create_judge_model().with_structured_output(FaithfulnessScore)
     sem = asyncio.Semaphore(3)
 
     arch_specs = [
@@ -712,47 +798,82 @@ async def main() -> None:
         ),
     ]
 
-    summaries: list[dict[str, Any]] = []
-    all_details: dict[str, list[dict[str, Any]]] = {}
-
+    raw_outputs_by_arch: list[tuple[str, str, list[CaseRunOutput]]] = []
     try:
         for arch_key, arch_name, graph in arch_specs:
             logger.info("开始评测 Agent 架构", architecture=arch_name, cases=len(cases))
             outputs = await asyncio.gather(
                 *(run_one_case(arch_key, arch_name, graph, case, judge_llm, sem) for case in cases)
             )
-            summary = compute_arch_metrics(arch_name, cases, outputs, catalog_map)
-            summaries.append(summary)
-            all_details[arch_key] = [
-                {
-                    "case_id": o.case_id,
-                    "category": o.category,
-                    "used_rag": o.used_rag,
-                    "used_recommend_or_quote": o.used_recommend_or_quote,
-                    "valid_source_ids": o.valid_source_ids,
-                    "cited_refs": extract_cited_refs(o.answer_text),
-                    "released_draft": o.released_draft,
-                    "guardrail_retry_count": o.guardrail_retry_count,
-                    "faithfulness": o.faithfulness,
-                    "latency_ms": o.latency_ms,
-                    "total_tokens": o.total_tokens,
-                    "llm_calls": o.llm_calls,
-                    "error": o.error,
-                    "answer_preview": o.answer_text[:280],
-                }
-                for o in outputs
-            ]
-            logger.info("完成评测 Agent 架构", **summary)
+            raw_outputs_by_arch.append((arch_key, arch_name, outputs))
     finally:
         InsurancePlanService.save_premium_quote = orig_save_quote  # type: ignore[method-assign]
         close_rag()
         await close_database()
 
+    # 计算 4 组架构均实际触发 RAG 的公共用例交集
+    common_rag_ids: set[str] | None = None
+    for _, _, outs in raw_outputs_by_arch:
+        rag_ok_ids = {
+            o.case_id
+            for o in outs
+            if o.error is None and o.used_rag and o.retrieved_sources and o.faithfulness is not None
+        }
+        common_rag_ids = rag_ok_ids if common_rag_ids is None else (common_rag_ids & rag_ok_ids)
+    common_ids = common_rag_ids or set()
+
+    summaries: list[dict[str, Any]] = []
+    all_details: dict[str, list[dict[str, Any]]] = {}
+    c_weak_cases: list[dict[str, Any]] = []
+
+    for arch_key, arch_name, outputs in raw_outputs_by_arch:
+        summary, weak_cases = compute_arch_metrics(
+            arch_name,
+            cases,
+            outputs,
+            catalog_map,
+            common_ids,
+        )
+        summaries.append(summary)
+        if arch_key == "C":
+            c_weak_cases = weak_cases
+        all_details[arch_key] = [
+            {
+                "case_id": o.case_id,
+                "category": o.category,
+                "used_rag": o.used_rag,
+                "used_recommend_or_quote": o.used_recommend_or_quote,
+                "valid_source_ids": o.valid_source_ids,
+                "cited_refs": extract_cited_refs(o.answer_text),
+                "all_citation_tokens": extract_all_citation_tokens(o.answer_text),
+                "released_draft": o.released_draft,
+                "guardrail_retry_count": o.guardrail_retry_count,
+                "faithfulness": o.faithfulness,
+                "faithfulness_reason": o.faithfulness_reason,
+                "latency_ms": o.latency_ms,
+                "total_tokens": o.total_tokens,
+                "llm_calls": o.llm_calls,
+                "error": o.error,
+                "answer_preview": o.answer_text[:280],
+            }
+            for o in outputs
+        ]
+        logger.info("完成评测 Agent 架构", **summary)
+
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-    md_text = render_markdown_report(summaries)
+    md_text = render_markdown_report(summaries, c_weak_cases)
     (REPORTS_DIR / "agent_eval.md").write_text(md_text, encoding="utf-8")
     (REPORTS_DIR / "agent_eval.json").write_text(
-        json.dumps({"summaries": summaries, "details": all_details}, ensure_ascii=False, indent=2),
+        json.dumps(
+            {
+                "summaries": summaries,
+                "common_rag_case_ids": sorted(common_ids),
+                "c_weak_cases": c_weak_cases,
+                "details": all_details,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
         encoding="utf-8",
     )
     print("\n" + md_text)

@@ -1,9 +1,9 @@
-from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, Request, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.auth import get_current_user_id
 from app.infra.database import get_session
 from app.modules.chat_thread.schemas import (
     ChatHistoryResponse,
@@ -28,7 +28,7 @@ async def get_service(
 @router.post("", response_model=ChatThreadResponse)
 async def create_chat_thread(
     request: ChatThreadCreate,
-    user_id: Annotated[int, Header(alias="x-user-id")],
+    user_id: int = Depends(get_current_user_id),
     service: ChatThreadService = Depends(get_service),
 ):
     """创建会话"""
@@ -37,7 +37,7 @@ async def create_chat_thread(
 
 @router.get("", response_model=list[ChatThreadResponse])
 async def list_chat_threads(
-    user_id: Annotated[int, Header(alias="x-user-id")],
+    user_id: int = Depends(get_current_user_id),
     service: ChatThreadService = Depends(get_service),
 ):
     """查询用户的全部会话"""
@@ -48,7 +48,7 @@ async def list_chat_threads(
 async def rename_chat_thread(
     thread_id: UUID,
     request: ChatThreadCreate,
-    user_id: Annotated[int, Header(alias="x-user-id")],
+    user_id: int = Depends(get_current_user_id),
     service: ChatThreadService = Depends(get_service),
 ):
     """重命名会话"""
@@ -61,7 +61,7 @@ async def rename_chat_thread(
 )
 async def delete_chat_thread(
     thread_id: UUID,
-    user_id: Annotated[int, Header(alias="x-user-id")],
+    user_id: int = Depends(get_current_user_id),
     service: ChatThreadService = Depends(get_service),
 ) -> Response:
     """删除指定会话"""
@@ -72,7 +72,7 @@ async def delete_chat_thread(
 @router.get("/{thread_id}/messages", response_model=ChatHistoryResponse)
 async def get_chat_history(
     thread_id: UUID,
-    user_id: Annotated[int, Header(alias="x-user-id")],
+    user_id: int = Depends(get_current_user_id),
     service: ChatThreadService = Depends(get_service),
 ):
     """查询指定会话的历史消息"""

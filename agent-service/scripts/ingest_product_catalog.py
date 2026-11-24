@@ -1,4 +1,4 @@
-"""将全量 50 款产品的结构化语义文本写入 Milvus 产品目录集合（insurance_product_catalog）。
+"""将全量 12 款真实产品的结构化语义文本写入 Milvus 产品目录集合（insurance_product_catalog）。
 
 用法：在 agent-service 目录执行
     uv run python scripts/ingest_product_catalog.py

@@ -50,8 +50,14 @@ app=FastAPI(
     lifespan=lifespan
 )
 
+from app.modules.auth.router import router as auth_router
+app.include_router(auth_router)
+
 from app.modules.product.router import router as product_router
 app.include_router(product_router)
+
+from app.modules.premium.router import router as premium_router
+app.include_router(premium_router)
 
 from app.modules.chat_thread.router import router as chat_thread_router
 app.include_router(chat_thread_router)
@@ -61,6 +67,16 @@ app.include_router(chat_router)
 
 from app.modules.insurance_plan.router import router as insurance_plan_router
 app.include_router(insurance_plan_router)
+
+from app.modules.policy.router import router as policy_router
+app.include_router(policy_router)
+
+from app.modules.claim.router import claim_guide_router, router as claim_router
+app.include_router(claim_router)
+app.include_router(claim_guide_router)
+
+from app.modules.order.router import router as order_router
+app.include_router(order_router)
 
 # 测试接口,健康检查
 @app.get("/healthy",summary="健康检查接口")

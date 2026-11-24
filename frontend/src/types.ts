@@ -24,6 +24,76 @@ export interface UserSummary {
 
 export interface AuthSession {
   user: UserSummary;
+  accessToken?: string;
+}
+
+export interface AuthTokenPayload {
+  access_token: string;
+  token_type: string;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    display_name?: string | null;
+    displayName?: string | null;
+  };
+}
+
+export interface PricingSchemaOption {
+  value: string | number;
+  label: string;
+  description?: string;
+}
+
+export interface PricingSchemaField {
+  key: string;
+  label: string;
+  type: string;
+  required?: boolean;
+  min?: number;
+  max?: number;
+  options?: Array<PricingSchemaOption | number | string>;
+  options_ref?: string;
+}
+
+export interface PricingSchemaResponse {
+  product_id: number;
+  scenario: string;
+  schema_version: string;
+  schema: {
+    title?: string;
+    fields?: PricingSchemaField[];
+    plan_options?: PricingSchemaOption[];
+    [key: string]: unknown;
+  };
+}
+
+export interface PremiumCalculateResponse {
+  quote_id: string;
+  product_id: number;
+  plan_code: string;
+  pricing_mode: string;
+  annual_premium: string;
+  payment_frequency: string;
+  breakdown: Array<{
+    item: string;
+    name: string;
+    premium: string;
+    source: Record<string, unknown>;
+  }>;
+  warnings: string[];
+  expires_at: string;
+}
+
+export interface OrderResponse {
+  id: string;
+  user_id: number;
+  order_number: string;
+  total_premium: string;
+  status: string;
+  items: Array<Record<string, unknown>>;
+  quote_ids: string[];
+  created_at: string;
 }
 
 export interface ChatThread {

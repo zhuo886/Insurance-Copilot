@@ -87,8 +87,10 @@ class PremiumEstimate(BaseModel):
 
     product_id: int
     annual_premium: float
-    pricing_mode: Literal["table", "mock_adapter", "estimated_formula"]
+    pricing_mode: Literal["table", "estimated_formula"]
     plan_code: str = "standard"
+    is_estimated: bool = False
+    pricing_disclaimer: str = ""
     breakdown: dict[str, Any] = Field(default_factory=dict)
 
 

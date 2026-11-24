@@ -2,16 +2,12 @@ import asyncio
 from collections.abc import Callable
 import math
 from typing import Any, Literal
-from uuid import uuid5, NAMESPACE_DNS
 
 from langchain_milvus import Milvus
 from pymilvus import Function, FunctionType
-from sqlalchemy import select
 
 from app.core.logging import get_logger
 from app.infra.database import AsyncSessionFactory
-from app.modules.product.catalog_data import load_builtin_catalog
-from app.modules.product.models import Product, ProductFeature
 from app.rag.models import ParentChunk
 from app.rag.query_rewriter import InsuranceQueryRewriter
 from app.rag.repository import ParentChunkRepository
@@ -21,9 +17,11 @@ logger = get_logger(__name__)
 RetrievalStrategy = Literal[
     "dense_only",
     "hybrid_no_rerank",
+    "hybrid_rewrite_no_rerank",
+    "hybrid_rewrite_parallel_dedup",
+    "full_enhanced",
     "hybrid_rerank_single",
     "hyde_hybrid_rerank",
-    "full_enhanced",
 ]
 
 
@@ -106,7 +104,7 @@ def _build_product_expr(product_ids: list[int] | None) -> str | None:
 
 
 class ParentChunkRetriever:
-    """增强版父子块检索器：支持术语改写、跨产品并行定额对比、共享条款去重及无条款结构化兜底。"""
+    """增强版父子块检索器：支持术语改写、跨产品并行定额对比、共享条款路径去重与语义重排。"""
 
     def __init__(
         self,
@@ -131,65 +129,6 @@ class ParentChunkRetriever:
         parent_chunk_map = {str(parent.id): parent for parent in parent_chunks}
         return [parent_chunk_map[pid] for pid in unique_ids if pid in parent_chunk_map]
 
-    async def _build_structured_fallback_chunk(self, product_id: int) -> ParentChunk | None:
-        """无 PDF 条款的扩展产品（如 id 13-50）优雅降级返回结构化保障摘要块。"""
-        product_name: str | None = None
-        summary_lines: list[str] = []
-
-        try:
-            async with self.session_factory() as session:
-                row = (
-                    await session.execute(
-                        select(Product, ProductFeature)
-                        .outerjoin(ProductFeature, ProductFeature.product_id == Product.id)
-                        .where(Product.id == product_id)
-                    )
-                ).first()
-                if row is not None:
-                    product, feature = row[0], row[1]
-                    product_name = product.name
-                    summary_lines.extend(
-                        [
-                            f"产品名称：{product.name}（承保公司：{product.insurer}，险种：{product.category}）",
-                            f"适用人群：{product.target_group or '详见产品说明'}",
-                            f"参考年保费：¥{product.min_premium or '-'} 起",
-                            f"产品简介：{product.description or '无'}",
-                            f"核心亮点：{'、'.join(product.highlights or []) or '无'}",
-                        ]
-                    )
-                    if feature is not None:
-                        renewal = (
-                            f"保证续保{feature.guarantee_renewal_years}年"
-                            if feature.guarantee_renewal_years
-                            else "非多年保证续保"
-                        )
-                        summary_lines.extend(
-                            [
-                                f"承保年龄：{feature.min_age}-{feature.max_age}周岁，职业上限：1-{feature.max_occupation_class}类",
-                                f"等待期：{feature.waiting_period_days}天，默认免赔额：¥{feature.deductible_default}",
-                                f"续保与标签：{renewal} | {'、'.join(feature.coverage_tags or [])}",
-                            ]
-                        )
-        except Exception as exc:
-            logger.debug("数据库兜底查询失败，尝试读取内置产品目录", product_id=product_id, error=str(exc))
-
-        if not summary_lines:
-            builtin_map = {item.id: item for item in load_builtin_catalog()}
-            cand = builtin_map.get(product_id)
-            if cand is None:
-                return None
-            product_name = cand.name
-            summary_lines.append(cand.to_semantic_text())
-
-        summary_lines.append("注：该产品为结构化目录扩展产品，暂未录入完整 PDF 合同条款原文。")
-        return ParentChunk(
-            id=uuid5(NAMESPACE_DNS, f"structured-fallback-{product_id}"),
-            product_id=product_id,
-            clause_name=f"结构化产品说明（{product_name}）",
-            section_path=[product_name or f"产品{product_id}", "结构化保障摘要（暂无完整PDF条款原文）"],
-            content="\n".join(summary_lines),
-        )
-
     async def _retrieve_single(
         self,
         query: str,
@@ -198,7 +137,8 @@ class ParentChunkRetriever:
         product_id: int | None,
         use_rewrite: bool,
         deduplicate: bool,
-        fetch_k: int,
+        use_rerank: bool = True,
+        fetch_k: int = 15,
     ) -> list[ParentChunk]:
         search_query = self.rewriter.rewrite_by_dict(query) if use_rewrite else query
         expr = f"product_id == {product_id}" if product_id is not None else None
@@ -206,12 +146,13 @@ class ParentChunkRetriever:
         child_k = max(k * 3, 12) if (deduplicate and product_id is None) else k
         effective_fetch_k = max(fetch_k, child_k * 2)
 
+        ranker = create_reranker(search_query) if use_rerank else create_rrf_ranker()
         child_chunks = await self.vector_store.asimilarity_search(
             query=search_query,
             k=child_k,
             fetch_k=effective_fetch_k,
             expr=expr,
-            reranker=create_reranker(search_query),
+            reranker=ranker,
         )
         parent_ids = [
             str(child.metadata["parent_id"])
@@ -222,11 +163,6 @@ class ParentChunkRetriever:
 
         if deduplicate:
             parents = deduplicate_parent_chunks(parents)
-
-        if not parents and product_id is not None:
-            fallback = await self._build_structured_fallback_chunk(product_id)
-            if fallback is not None:
-                return [fallback]
 
         return parents[:k]
 
@@ -239,9 +175,11 @@ class ParentChunkRetriever:
         product_ids: list[int] | None = None,
         use_rewrite: bool = True,
         deduplicate: bool = True,
+        use_rerank: bool = True,
+        parallel_compare: bool = True,
         fetch_k: int = 15,
     ) -> list[ParentChunk]:
-        """检索父知识块：向后兼容单 product_id，并支持多产品并行定额对比与全局去重检索。"""
+        """检索真实条款父知识块；未检索到真实合同时如实返回空列表，绝不伪造兜底条款。"""
         if product_ids is not None:
             resolved_ids = list(dict.fromkeys(int(pid) for pid in product_ids))
         elif product_id is not None:
@@ -249,7 +187,7 @@ class ParentChunkRetriever:
         else:
             resolved_ids = None
 
-        if resolved_ids and len(resolved_ids) > 1:
+        if parallel_compare and resolved_ids and len(resolved_ids) > 1:
             per_k = max(2, math.ceil(k / len(resolved_ids)))
             grouped = await asyncio.gather(
                 *(
@@ -259,6 +197,7 @@ class ParentChunkRetriever:
                         product_id=pid,
                         use_rewrite=use_rewrite,
                         deduplicate=deduplicate,
+                        use_rerank=use_rerank,
                         fetch_k=fetch_k,
                     )
                     for pid in resolved_ids
@@ -266,13 +205,34 @@ class ParentChunkRetriever:
             )
             return merge_round_robin(list(grouped), k=k, deduplicate=deduplicate)
 
-        single_pid = resolved_ids[0] if resolved_ids else None
+        single_pid = resolved_ids[0] if (resolved_ids and len(resolved_ids) == 1) else None
+        if resolved_ids and len(resolved_ids) > 1:
+            # 非并行对比模式（单次过滤查询）供消融实验公平对比
+            expr = _build_product_expr(resolved_ids)
+            search_query = self.rewriter.rewrite_by_dict(query) if use_rewrite else query
+            ranker = create_reranker(search_query) if use_rerank else create_rrf_ranker()
+            child_chunks = await self.vector_store.asimilarity_search(
+                query=search_query,
+                k=k,
+                fetch_k=max(fetch_k, k * 2),
+                expr=expr,
+                reranker=ranker,
+            )
+            parent_ids = [
+                str(child.metadata["parent_id"])
+                for child in child_chunks
+                if child.metadata and "parent_id" in child.metadata
+            ]
+            parents = await self._fetch_parents_in_order(parent_ids)
+            return deduplicate_parent_chunks(parents)[:k] if deduplicate else parents[:k]
+
         return await self._retrieve_single(
             query,
             k=k,
             product_id=single_pid,
             use_rewrite=use_rewrite,
             deduplicate=deduplicate,
+            use_rerank=use_rerank,
             fetch_k=fetch_k,
         )
 
@@ -285,7 +245,7 @@ class ParentChunkRetriever:
         product_ids: list[int] | None = None,
         fetch_k: int = 15,
     ) -> list[ParentChunk]:
-        """策略可控的检索入口，专用于 eval_rag 消融实验公平对比 5 组方案。"""
+        """策略可控检索入口，支持 7 组单变量递进消融对照。"""
         resolved_ids = list(dict.fromkeys(int(pid) for pid in product_ids)) if product_ids else None
         expr = _build_product_expr(resolved_ids)
 
@@ -296,6 +256,32 @@ class ParentChunkRetriever:
                 product_ids=resolved_ids,
                 use_rewrite=True,
                 deduplicate=True,
+                use_rerank=True,
+                parallel_compare=True,
+                fetch_k=fetch_k,
+            )
+
+        if strategy == "hybrid_rewrite_parallel_dedup":
+            return await self.retrieve(
+                query,
+                k=k,
+                product_ids=resolved_ids,
+                use_rewrite=True,
+                deduplicate=True,
+                use_rerank=False,
+                parallel_compare=True,
+                fetch_k=fetch_k,
+            )
+
+        if strategy == "hybrid_rewrite_no_rerank":
+            return await self.retrieve(
+                query,
+                k=k,
+                product_ids=resolved_ids,
+                use_rewrite=True,
+                deduplicate=False,
+                use_rerank=False,
+                parallel_compare=False,
                 fetch_k=fetch_k,
             )
 

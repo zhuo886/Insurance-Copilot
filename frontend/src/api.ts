@@ -1,8 +1,13 @@
+import { readSession } from './auth';
 import type {
+  AuthTokenPayload,
   ChatHistory,
   ChatThread,
   InsuranceCategory,
+  OrderResponse,
   PlanInterrupt,
+  PremiumCalculateResponse,
+  PricingSchemaResponse,
   Product,
 } from './types';
 
@@ -18,6 +23,18 @@ export class ApiError extends Error {
   }
 }
 
+function buildAuthHeaders(userId?: number): Record<string, string> {
+  const headers: Record<string, string> = {};
+  const token = readSession()?.accessToken;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  if (userId !== undefined) {
+    headers['x-user-id'] = String(userId);
+  }
+  return headers;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -29,7 +46,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    throw new ApiError(error?.message ?? '请求失败，请稍后重试', response.status);
+    throw new ApiError(error?.detail ?? error?.message ?? '请求失败，请稍后重试', response.status);
   }
   return response.json() as Promise<T>;
 }
@@ -44,13 +61,13 @@ async function authorizedBusinessRequest<T>(
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      'x-user-id': String(userId),
+      ...buildAuthHeaders(userId),
       ...init?.headers,
     },
   });
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    throw new ApiError(error?.message ?? '璇锋眰澶辫触锛岃绋嶅悗閲嶈瘯', response.status);
+    throw new ApiError(error?.detail ?? error?.message ?? '请求失败，请稍后重试', response.status);
   }
   if (response.status === 204) {
     return undefined as T;
@@ -65,9 +82,10 @@ async function agentRequest<T>(
 ): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      'x-user-id': String(userId),
+      ...buildAuthHeaders(userId),
       ...init?.headers,
     },
   });
@@ -81,6 +99,36 @@ async function agentRequest<T>(
   return response.json() as Promise<T>;
 }
 
+export function loginUser(username: string, password: string): Promise<AuthTokenPayload> {
+  return request<AuthTokenPayload>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  });
+}
+
+export function registerUser(
+  username: string,
+  email: string,
+  password: string,
+): Promise<AuthTokenPayload> {
+  return request<AuthTokenPayload>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ username, email, password }),
+  });
+}
+
+export function refreshAccessToken(): Promise<AuthTokenPayload> {
+  return request<AuthTokenPayload>('/auth/refresh', {
+    method: 'POST',
+  });
+}
+
+export function logoutUser(): Promise<{ ok: boolean }> {
+  return request<{ ok: boolean }>('/auth/logout', {
+    method: 'POST',
+  });
+}
+
 export function listProducts(
   category: InsuranceCategory | 'all',
   signal?: AbortSignal,
@@ -91,6 +139,36 @@ export function listProducts(
   }
   const query = params.toString();
   return request<Product[]>(`/products${query ? `?${query}` : ''}`, { signal });
+}
+
+export function getProductDetail(productId: number, signal?: AbortSignal): Promise<Product> {
+  return request<Product>(`/products/${encodeURIComponent(String(productId))}`, { signal });
+}
+
+export function getProductPricingSchema(
+  productId: number,
+  signal?: AbortSignal,
+): Promise<PricingSchemaResponse> {
+  return request<PricingSchemaResponse>(
+    `/products/${encodeURIComponent(String(productId))}/pricing-schema`,
+    { signal },
+  );
+}
+
+export function calculatePremium(payload: {
+  product_id: number;
+  scenario?: string;
+  answers: Record<string, unknown>;
+}): Promise<PremiumCalculateResponse> {
+  return request<PremiumCalculateResponse>('/premium/calculate', {
+    method: 'POST',
+    headers: buildAuthHeaders(readSession()?.user.id),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getCurrentInsurancePlan(userId: number): Promise<unknown> {
+  return authorizedBusinessRequest<unknown>('/insurance-plans/current', userId);
 }
 
 export function markPlanItemInsured(
@@ -109,6 +187,56 @@ export function getInsurancePlan(userId: number, planId: string): Promise<unknow
   return authorizedBusinessRequest<unknown>(
     `/insurance-plans/${encodeURIComponent(planId)}`,
     userId,
+  );
+}
+
+export function listPolicies(userId: number, status = 'active'): Promise<{ items: unknown[] }> {
+  return authorizedBusinessRequest<{ items: unknown[] }>(
+    `/policies?status=${encodeURIComponent(status)}`,
+    userId,
+  );
+}
+
+export function listClaims(userId: number, status?: string): Promise<{ items: unknown[] }> {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+  return authorizedBusinessRequest<{ items: unknown[] }>(`/claims${qs}`, userId);
+}
+
+export function getClaimGuide(userId: number, policyId: string): Promise<unknown> {
+  return authorizedBusinessRequest<unknown>(
+    `/claim-guides/${encodeURIComponent(policyId)}`,
+    userId,
+  );
+}
+
+export function getClaimApplicationFormUrl(): string {
+  return `${API_BASE}/claim-guides/application-form`;
+}
+
+export function createOrder(
+  userId: number,
+  payload: {
+    quote_ids?: string[];
+    idempotency_key?: string;
+    items?: Array<Record<string, unknown>>;
+    recommendation_snapshot?: Record<string, unknown>;
+  },
+): Promise<OrderResponse> {
+  return authorizedBusinessRequest<OrderResponse>('/orders', userId, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function listOrders(userId: number): Promise<{ items: OrderResponse[] }> {
+  return authorizedBusinessRequest<{ items: OrderResponse[] }>('/orders', userId);
+}
+
+export function cancelOrder(userId: number, orderId: string): Promise<OrderResponse> {
+  return authorizedBusinessRequest<OrderResponse>(
+    `/orders/${encodeURIComponent(orderId)}/cancel`,
+    userId,
+    { method: 'POST' },
   );
 }
 
@@ -156,9 +284,10 @@ export async function streamChat(
 ): Promise<void> {
   const response = await fetch(`${API_BASE}/chat`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      'x-user-id': String(userId),
+      ...buildAuthHeaders(userId),
     },
     body: JSON.stringify({ thread_id: threadId, ...input }),
   });

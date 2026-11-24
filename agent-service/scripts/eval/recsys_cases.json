@@ -1,442 +1,392 @@
 [
   {
     "case_id": "R01",
-    "scenario_name": "28岁白领青年三险基础配置",
+    "scenario_name": "28岁白领三险紧预算",
     "profile": {
       "age": 28, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 3000, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "本人", "preferences": ["保证续保20年", "外购药", "猝死保障"],
-      "query_text": "28岁程序员有医保，预算3000左右，配齐百万医疗、重疾和含猝死意外险"
+      "annual_budget": 2300, "target_categories": ["medical", "critical_illness", "accident"],
+      "family_role": "本人", "preferences": ["保证续保20年", "高性价比", "猝死保障"],
+      "query_text": "28岁程序员有医保，每年最多预算2300元，配齐百万医疗、重疾险和含猝死意外险"
     },
-    "preferred_ids": [4, 13, 26, 27, 10, 33]
+    "expected_eligible_ids": [2, 3, 4, 5, 6, 10, 11],
+    "expected_relevance": {"4": 3, "2": 3, "10": 3, "6": 2, "5": 2, "11": 1},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R02",
-    "scenario_name": "30岁女性高性价比重疾医疗意外",
+    "scenario_name": "30岁女性专享保障与性价比",
     "profile": {
       "age": 30, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 3500, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "本人", "preferences": ["女性保障", "保证续保20年", "高性价比"],
-      "query_text": "30岁女生有社保，预算3500配医疗重疾和女性意外险"
+      "annual_budget": 2600, "target_categories": ["medical", "critical_illness", "accident"],
+      "family_role": "本人", "preferences": ["女性保障", "保证续保20年", "外购药"],
+      "query_text": "30岁女生有社保，预算2600配长期医疗、终身重疾和女性意外险"
     },
-    "preferred_ids": [4, 15, 26, 27, 11, 33]
+    "expected_eligible_ids": [2, 3, 4, 5, 6, 10, 11],
+    "expected_relevance": {"4": 3, "2": 3, "11": 3, "5": 2, "6": 2, "10": 1},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R03",
-    "scenario_name": "5岁少儿全方位三险配置",
+    "scenario_name": "5岁少儿全险配置",
     "profile": {
       "age": 5, "gender": "male", "occupation_class": 1, "has_social_security": true,
       "annual_budget": 1800, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "少儿", "preferences": ["少儿特疾", "0免赔", "门急诊"],
-      "query_text": "5岁小孩有少儿医保，预算1800，想买0免赔门急诊医疗、少儿重疾和少儿意外"
+      "family_role": "少儿", "preferences": ["少儿特疾", "门急诊", "学平险"],
+      "query_text": "5岁男宝宝有少儿医保，预算1800配齐儿童医疗、少儿重疾和学平险意外险"
     },
-    "preferred_ids": [18, 1, 23, 38, 12]
+    "expected_eligible_ids": [1, 2, 4, 5, 6, 12],
+    "expected_relevance": {"4": 3, "1": 3, "12": 3, "6": 2, "5": 2, "2": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R04",
-    "scenario_name": "8岁小学生学平险与少儿重疾",
+    "scenario_name": "8岁小学生重疾与学平险",
     "profile": {
       "age": 8, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 2000, "target_categories": ["critical_illness", "accident"],
-      "family_role": "少儿", "preferences": ["少儿特疾", "学平险", "少儿意外"],
-      "query_text": "8岁小学生买重疾险和学平险意外险，预算2000"
+      "annual_budget": 1500, "target_categories": ["critical_illness", "accident"],
+      "family_role": "少儿", "preferences": ["少儿特疾", "学平险", "高性价比"],
+      "query_text": "8岁小学生买少儿重疾险和学平险意外险，预算1500"
     },
-    "preferred_ids": [1, 23, 24, 12, 38]
+    "expected_eligible_ids": [1, 2, 12],
+    "expected_relevance": {"1": 3, "12": 3, "2": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R05",
-    "scenario_name": "62岁父亲三高友好医疗与老人意外",
+    "scenario_name": "0岁新生儿全险年龄下限检验",
     "profile": {
-      "age": 62, "gender": "male", "occupation_class": 2, "has_social_security": true,
-      "annual_budget": 2800, "target_categories": ["medical", "accident"],
-      "family_role": "父母", "preferences": ["核保宽松", "三高", "老人意外", "0免赔"],
-      "query_text": "62岁爸爸有高血压和医保，买医疗险和老人防跌倒意外险，预算2800"
+      "age": 0, "gender": "female", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 2000, "target_categories": ["medical", "critical_illness", "accident"],
+      "family_role": "少儿", "preferences": ["少儿特疾", "百万医疗"],
+      "query_text": "刚满3个月的0岁婴儿有医保，预算2000买医疗险和少儿重疾险"
     },
-    "preferred_ids": [16, 17, 5, 34, 35]
+    "expected_eligible_ids": [1, 2, 6],
+    "expected_relevance": {"6": 3, "1": 3, "2": 2},
+    "expect_missing_categories": ["accident"]
   },
   {
     "case_id": "R06",
-    "scenario_name": "68岁母亲高龄防癌医疗与意外",
+    "scenario_name": "20岁大学生4类兼职职业",
     "profile": {
-      "age": 68, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 3500, "target_categories": ["medical", "accident"],
-      "family_role": "父母", "preferences": ["防癌医疗", "高龄可保", "老人意外"],
-      "query_text": "给68岁妈妈配置防癌医疗险和老年骨折意外险，预算3500"
+      "age": 20, "gender": "male", "occupation_class": 4, "has_social_security": true,
+      "annual_budget": 2500, "target_categories": ["medical", "critical_illness", "accident"],
+      "family_role": "本人", "preferences": ["学平险", "保证续保20年", "青年重疾"],
+      "query_text": "20岁体校大学生属于4类职业，有社保，预算2500买医疗重疾和学生意外险"
     },
-    "preferred_ids": [17, 16, 5, 34, 35]
+    "expected_eligible_ids": [2, 3, 4, 5, 6, 12],
+    "expected_relevance": {"4": 3, "2": 3, "12": 3, "6": 2, "5": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R07",
-    "scenario_name": "74岁高龄老人意外加防癌医疗",
+    "scenario_name": "30岁无社保预算精确筛选",
     "profile": {
-      "age": 74, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 4000, "target_categories": ["medical", "accident"],
-      "family_role": "父母", "preferences": ["高龄可保", "免健告", "老人意外"],
-      "query_text": "74岁爷爷还能买什么医疗和防摔倒意外险，预算4000"
+      "age": 30, "gender": "male", "occupation_class": 1, "has_social_security": false,
+      "annual_budget": 600, "target_categories": ["medical", "accident"],
+      "family_role": "本人", "preferences": ["保证续保20年", "猝死保障"],
+      "query_text": "30岁自由职业暂无社保，每年预算严格不超过600元，配医疗和意外险"
     },
-    "preferred_ids": [16, 17, 34, 35]
+    "expected_eligible_ids": [4, 5, 6, 10, 11],
+    "expected_relevance": {"4": 3, "10": 3, "5": 2, "6": 1, "11": 1},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R08",
-    "scenario_name": "32岁6类高危职业建筑工全配",
+    "scenario_name": "32岁外购药特需长期医疗专项",
     "profile": {
-      "age": 32, "gender": "male", "occupation_class": 6, "has_social_security": true,
-      "annual_budget": 4500, "target_categories": ["medical", "critical_illness", "accident", "life"],
-      "family_role": "家庭支柱", "preferences": ["高危职业可保", "定期寿险"],
-      "query_text": "32岁高空建筑工人属于6类职业，预算4500配齐医疗、重疾、高危意外和定寿"
+      "age": 32, "gender": "male", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 1000, "target_categories": ["medical"],
+      "family_role": "本人", "preferences": ["保证续保20年", "外购药", "特需医疗"],
+      "query_text": "32岁男性有医保，看重20年保证续保、院外特药不限清单和特需医疗"
     },
-    "preferred_ids": [6, 20, 29, 30, 36, 37, 43]
+    "expected_eligible_ids": [4, 5, 6],
+    "expected_relevance": {"4": 3, "5": 2, "6": 1},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R09",
-    "scenario_name": "29岁5类职业外卖骑手极紧预算",
+    "scenario_name": "35岁青年边界重疾医疗意外",
     "profile": {
-      "age": 29, "gender": "male", "occupation_class": 5, "has_social_security": false,
-      "annual_budget": 1500, "target_categories": ["medical", "accident"],
-      "family_role": "本人", "preferences": ["高危职业可保", "无社保友好", "高性价比"],
-      "query_text": "29岁外卖骑手无社保，5类职业，预算1500配医疗和骑手意外"
+      "age": 35, "gender": "female", "occupation_class": 2, "has_social_security": true,
+      "annual_budget": 3000, "target_categories": ["medical", "critical_illness", "accident"],
+      "family_role": "本人", "preferences": ["终身重疾", "保证续保20年", "女性保障"],
+      "query_text": "35岁女性2类职业有社保，预算3000配医疗、终身重疾和女性意外险"
     },
-    "preferred_ids": [22, 6, 20, 37, 36]
+    "expected_eligible_ids": [2, 3, 4, 5, 6, 10, 11],
+    "expected_relevance": {"4": 3, "2": 3, "11": 3, "5": 2, "6": 2, "3": 1, "10": 1},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R10",
-    "scenario_name": "35岁房贷家庭支柱四大险种配齐",
+    "scenario_name": "36岁突破达尔文12号年龄上限",
     "profile": {
-      "age": 35, "gender": "male", "occupation_class": 2, "has_social_security": true,
-      "annual_budget": 6000, "target_categories": ["medical", "critical_illness", "accident", "life"],
-      "family_role": "家庭支柱", "preferences": ["保证续保20年", "定期寿险", "定寿高杠杆", "猝死保障"],
-      "query_text": "35岁家里顶梁柱有房贷，预算6000把百万医疗、重疾、意外和定期寿险配齐"
+      "age": 36, "gender": "male", "occupation_class": 2, "has_social_security": true,
+      "annual_budget": 4200, "target_categories": ["medical", "critical_illness", "accident"],
+      "family_role": "家庭支柱", "preferences": ["中年重疾", "保证续保20年", "意外医疗"],
+      "query_text": "36岁男性2类职业有医保，预算4200配置重疾险、长期医疗险和意外险"
     },
-    "preferred_ids": [4, 13, 26, 25, 33, 43, 44]
+    "expected_eligible_ids": [3, 4, 5, 6, 10, 11],
+    "expected_relevance": {"3": 3, "4": 3, "10": 3, "5": 2, "6": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R11",
-    "scenario_name": "42岁中年男性突破35岁重疾限制",
+    "scenario_name": "42岁中年医疗重疾意外稳健配置",
     "profile": {
       "age": 42, "gender": "male", "occupation_class": 2, "has_social_security": true,
-      "annual_budget": 5500, "target_categories": ["medical", "critical_illness", "accident"],
+      "annual_budget": 4500, "target_categories": ["medical", "critical_illness", "accident"],
       "family_role": "家庭支柱", "preferences": ["中年重疾", "保证续保20年", "外购药"],
-      "query_text": "42岁中年男士预算5500配置长期医疗、重疾险和意外险"
+      "query_text": "42岁中年男士预算4500配置长期医疗、重疾和意外险"
     },
-    "preferred_ids": [15, 4, 25, 27, 28, 33, 39]
+    "expected_eligible_ids": [3, 4, 5, 6, 10, 11],
+    "expected_relevance": {"4": 3, "3": 3, "10": 3, "5": 2, "6": 2, "11": 1},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R12",
-    "scenario_name": "24岁刚毕业青年超紧预算基础兜底",
+    "scenario_name": "45岁无社保重疾超支降级保医疗",
     "profile": {
-      "age": 24, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 1000, "target_categories": ["medical", "accident"],
-      "family_role": "本人", "preferences": ["高性价比", "0免赔"],
-      "query_text": "24岁刚工作预算只有1000元，先配一份基础医疗险和意外险"
+      "age": 45, "gender": "male", "occupation_class": 1, "has_social_security": false,
+      "annual_budget": 1500, "target_categories": ["medical", "critical_illness"],
+      "family_role": "本人", "preferences": ["外购药", "保证续保20年"],
+      "query_text": "45岁男性无社保，年预算只有1500元，想看医疗险和重疾险怎么优先配置"
     },
-    "preferred_ids": [21, 4, 13, 33, 40]
+    "expected_eligible_ids": [3, 4, 5, 6],
+    "expected_relevance": {"4": 3, "5": 2, "6": 1, "3": 1},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R13",
-    "scenario_name": "26岁刚工作极紧预算三险",
+    "scenario_name": "50岁边界年龄四险兼顾",
     "profile": {
-      "age": 26, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 1600, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "本人", "preferences": ["高性价比", "定期重疾"],
-      "query_text": "26岁青年预算1600想买医疗、定期重疾和意外险"
+      "age": 50, "gender": "female", "occupation_class": 3, "has_social_security": true,
+      "annual_budget": 11000, "target_categories": ["medical", "critical_illness", "accident", "life"],
+      "family_role": "本人", "preferences": ["终身寿险", "分红型", "保证续保20年"],
+      "query_text": "50岁女性3类职业有医保，预算11000配齐医疗、重疾、意外和分红寿险"
     },
-    "preferred_ids": [21, 4, 27, 26, 33, 40]
+    "expected_eligible_ids": [3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "expected_relevance": {"4": 3, "3": 3, "11": 3, "8": 3, "5": 2, "6": 2, "7": 2, "9": 2, "10": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R14",
-    "scenario_name": "38岁肺结节患者宽松核保配置",
+    "scenario_name": "52岁4类职业超越意外险50岁3类双重红线",
     "profile": {
-      "age": 38, "gender": "female", "occupation_class": 2, "has_social_security": true,
-      "annual_budget": 6500, "target_categories": ["medical", "critical_illness", "life"],
-      "family_role": "本人", "preferences": ["核保宽松", "转保"],
-      "query_text": "38岁体检有肺结节，想要核保宽松的重疾、转保医疗和定寿，预算6500"
+      "age": 52, "gender": "male", "occupation_class": 4, "has_social_security": true,
+      "annual_budget": 8000, "target_categories": ["medical", "critical_illness", "accident"],
+      "family_role": "父母", "preferences": ["核保宽松", "外购药"],
+      "query_text": "52岁男性4类技工有医保，预算8000想配医疗、重疾和意外险"
     },
-    "preferred_ids": [5, 16, 25, 28, 43, 46]
+    "expected_eligible_ids": [3, 4, 5, 6],
+    "expected_relevance": {"4": 3, "3": 3, "5": 2, "6": 2},
+    "expect_missing_categories": ["accident"]
   },
   {
     "case_id": "R15",
-    "scenario_name": "33岁高净值客户特需高端医疗+多次重疾",
+    "scenario_name": "55岁个人版医疗上限与5000起投寿险",
     "profile": {
-      "age": 33, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 15000, "target_categories": ["medical", "critical_illness", "accident", "life"],
-      "family_role": "家庭支柱", "preferences": ["特需医疗", "0免赔", "多次赔付", "商旅交通"],
-      "query_text": "33岁企业高管预算15000，想要特需国际部0免赔医疗、不分组多次赔重疾、商旅意外和寿险"
+      "age": 55, "gender": "female", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 7000, "target_categories": ["medical", "life"],
+      "family_role": "父母", "preferences": ["保证续保20年", "终身寿险"],
+      "query_text": "55岁阿姨有医保，预算7000想买保证续保长期医疗和储蓄分红终身寿险"
     },
-    "preferred_ids": [19, 5, 31, 41, 44, 49]
+    "expected_eligible_ids": [4, 5, 6, 7, 8, 9],
+    "expected_relevance": {"4": 3, "8": 3, "5": 2, "6": 2, "7": 1, "9": 1},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R16",
-    "scenario_name": "46岁4类职业工程监理",
+    "scenario_name": "58岁超个人版55岁上限与福满佳57岁上限",
     "profile": {
-      "age": 46, "gender": "male", "occupation_class": 4, "has_social_security": true,
-      "annual_budget": 5000, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "家庭支柱", "preferences": ["保证续保20年", "等待期短"],
-      "query_text": "46岁工程监理4类职业，预算5000配医疗、重疾和4类可保意外险"
+      "age": 58, "gender": "male", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 10000, "target_categories": ["medical", "critical_illness", "life"],
+      "family_role": "父母", "preferences": ["中老年医疗", "核保宽松", "高龄可保"],
+      "query_text": "58岁父亲有医保，预算10000配中老年医疗险、重疾险和终身寿险"
     },
-    "preferred_ids": [15, 4, 27, 25, 39, 40]
+    "expected_eligible_ids": [3, 5, 6, 8, 9],
+    "expected_relevance": {"5": 3, "6": 2, "3": 3, "8": 3, "9": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R17",
-    "scenario_name": "52岁中年男性防癌重疾与老人意外",
+    "scenario_name": "62岁父亲转保0免赔与尊享e生比选",
     "profile": {
-      "age": 52, "gender": "male", "occupation_class": 3, "has_social_security": true,
-      "annual_budget": 4500, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "父母", "preferences": ["防癌重疾", "保证续保20年", "老人意外"],
-      "query_text": "52岁男士预算4500，配置长期医疗、中老年重疾和意外险"
+      "age": 62, "gender": "male", "occupation_class": 2, "has_social_security": true,
+      "annual_budget": 3000, "target_categories": ["medical"],
+      "family_role": "父母", "preferences": ["0免赔", "转保", "中老年医疗"],
+      "query_text": "62岁爸爸有医保，以前买过医疗险想转保0免赔长期医疗，预算3000"
     },
-    "preferred_ids": [15, 5, 32, 28, 34, 33]
+    "expected_eligible_ids": [5, 6],
+    "expected_relevance": {"5": 3, "6": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R18",
-    "scenario_name": "31岁已婚双薪家庭定寿+医疗",
+    "scenario_name": "62岁父亲无医保6500预算卡位测试",
     "profile": {
-      "age": 31, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 3000, "target_categories": ["medical", "life", "accident"],
-      "family_role": "配偶", "preferences": ["夫妻共保", "家庭保障", "保证续保20年"],
-      "query_text": "31岁已婚夫妻共保，预算3000想看家庭长期医疗、夫妻定寿和意外"
+      "age": 62, "gender": "male", "occupation_class": 1, "has_social_security": false,
+      "annual_budget": 6000, "target_categories": ["medical"],
+      "family_role": "父母", "preferences": ["中老年医疗", "核保宽松"],
+      "query_text": "62岁父亲没有医保，预算最多6000元，看中中老年长期医疗险"
     },
-    "preferred_ids": [13, 4, 45, 43, 42, 11]
+    "expected_eligible_ids": [5, 6],
+    "expected_relevance": {"5": 3, "6": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R19",
-    "scenario_name": "27岁互联网加班熬夜人群防猝死配置",
+    "scenario_name": "68岁母亲高龄医疗与太保福有余压线",
     "profile": {
-      "age": 27, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 2500, "target_categories": ["medical", "accident", "life"],
-      "family_role": "本人", "preferences": ["猝死保障", "0免赔", "定寿高杠杆"],
-      "query_text": "27岁互联网经常加班，预算2500看重猝死保障的意外险、定寿和0免赔医疗"
+      "age": 68, "gender": "female", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 9000, "target_categories": ["medical", "life"],
+      "family_role": "父母", "preferences": ["中老年医疗", "高龄可保", "终身寿险"],
+      "query_text": "68岁妈妈有医保，预算9000元想买高龄医疗险和分红终身寿险"
     },
-    "preferred_ids": [14, 5, 39, 33, 44, 43]
+    "expected_eligible_ids": [5, 6, 8, 9],
+    "expected_relevance": {"5": 3, "6": 2, "8": 3, "9": 1},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R20",
-    "scenario_name": "36岁无医保自由职业者",
+    "scenario_name": "70岁最高龄老人合规医疗与寿险",
     "profile": {
-      "age": 36, "gender": "female", "occupation_class": 2, "has_social_security": false,
-      "annual_budget": 3800, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "本人", "preferences": ["无社保友好", "保证续保20年"],
-      "query_text": "36岁自由职业没有交医保，预算3800配置医疗、重疾和意外"
+      "age": 70, "gender": "male", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 14000, "target_categories": ["medical", "life"],
+      "family_role": "父母", "preferences": ["高龄可保", "中老年医疗", "长期保障"],
+      "query_text": "70岁爷爷有医保，预算14000还能买什么医疗险和终身寿险"
     },
-    "preferred_ids": [22, 15, 25, 27, 33, 39]
+    "expected_eligible_ids": [5, 6, 9],
+    "expected_relevance": {"5": 3, "6": 3, "9": 3},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R21",
-    "scenario_name": "1岁幼儿首次投保重疾+门急诊医疗",
+    "scenario_name": "29岁5类职业外卖骑手医疗筛选",
     "profile": {
-      "age": 1, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 1400, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "少儿", "preferences": ["少儿医疗", "少儿特疾", "0免赔"],
-      "query_text": "1岁女宝预算1400配门急诊医疗、少儿重疾和意外险"
+      "age": 29, "gender": "male", "occupation_class": 5, "has_social_security": false,
+      "annual_budget": 1000, "target_categories": ["medical", "accident"],
+      "family_role": "本人", "preferences": ["高危职业可保", "百万医疗"],
+      "query_text": "29岁外卖骑手无社保，5类职业，预算1000配高危职业可保的医疗和意外险"
     },
-    "preferred_ids": [18, 1, 23, 38]
+    "expected_eligible_ids": [6],
+    "expected_relevance": {"6": 3},
+    "expect_missing_categories": ["accident"]
   },
   {
     "case_id": "R22",
-    "scenario_name": "15岁中学生学平险与少儿多次重疾",
+    "scenario_name": "34岁6类高空作业医疗加寿险",
     "profile": {
-      "age": 15, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 2800, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "少儿", "preferences": ["少儿特疾", "多次赔付", "学平险"],
-      "query_text": "15岁初中生预算2800配多次赔重疾、医疗和学平险"
+      "age": 34, "gender": "male", "occupation_class": 6, "has_social_security": true,
+      "annual_budget": 6000, "target_categories": ["medical", "life"],
+      "family_role": "家庭支柱", "preferences": ["高危职业可保", "百万医疗", "分红型"],
+      "query_text": "34岁高空安装师傅6类职业有社保，预算6000配医疗险和终身寿险"
     },
-    "preferred_ids": [18, 4, 24, 1, 12, 38]
+    "expected_eligible_ids": [6, 7, 8, 9],
+    "expected_relevance": {"6": 3, "8": 3, "7": 2, "9": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R23",
-    "scenario_name": "58岁大货车司机高危职业医保与意外",
+    "scenario_name": "45岁6类职业高保额医疗与寿险对比",
     "profile": {
-      "age": 58, "gender": "male", "occupation_class": 6, "has_social_security": true,
-      "annual_budget": 2500, "target_categories": ["medical", "accident"],
-      "family_role": "父母", "preferences": ["高危职业可保", "中老年医疗"],
-      "query_text": "58岁大货车司机6类职业，预算2500找能保高危的医疗险和意外险"
+      "age": 45, "gender": "male", "occupation_class": 6, "has_social_security": true,
+      "annual_budget": 12000, "target_categories": ["medical", "life"],
+      "family_role": "家庭支柱", "preferences": ["高危职业可保", "财富传承"],
+      "query_text": "45岁工程机械操作员6类职业有医保，预算12000配医疗和财富传承终身寿"
     },
-    "preferred_ids": [6, 20, 16, 36, 37, 34]
+    "expected_eligible_ids": [6, 7, 8, 9],
+    "expected_relevance": {"6": 3, "8": 3, "7": 3, "9": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R24",
-    "scenario_name": "40岁单身女性只看0免赔长期医疗",
+    "scenario_name": "6000元预算储蓄分红寿险阈值挑选",
     "profile": {
-      "age": 40, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 1800, "target_categories": ["medical"],
-      "family_role": "本人", "preferences": ["0免赔", "保证续保20年", "外购药"],
-      "query_text": "40岁女士预算1800只想买一款0免赔且保证续保20年的百万医疗险"
+      "age": 35, "gender": "female", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 6000, "target_categories": ["life"],
+      "family_role": "本人", "preferences": ["终身寿险", "分红型"],
+      "query_text": "35岁女性每年想拿6000元买分红型终身寿险做稳健储蓄"
     },
-    "preferred_ids": [14, 5, 4]
+    "expected_eligible_ids": [7, 8, 9],
+    "expected_relevance": {"8": 3, "7": 1, "9": 1},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R25",
-    "scenario_name": "29岁男性只配置定期重疾险（短等待期）",
+    "scenario_name": "15000元预算高分红寿险与全面医疗重疾意外",
     "profile": {
-      "age": 29, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 1800, "target_categories": ["critical_illness"],
-      "family_role": "本人", "preferences": ["定期重疾", "等待期短", "高性价比"],
-      "query_text": "29岁预算1800买等待期短、性价比高的重疾险"
+      "age": 33, "gender": "male", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 15000, "target_categories": ["medical", "critical_illness", "accident", "life"],
+      "family_role": "家庭支柱", "preferences": ["保证续保20年", "终身重疾", "财富传承", "分红型"],
+      "query_text": "33岁高收入男白领，预算15000，想要20年长期医疗、终身重疾、意外和成长分红寿险"
     },
-    "preferred_ids": [26, 27, 30]
+    "expected_eligible_ids": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "expected_relevance": {"4": 3, "2": 3, "10": 3, "7": 3, "8": 3, "5": 2, "3": 2, "6": 2, "9": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R26",
-    "scenario_name": "34岁新晋奶爸高杠杆定期寿险",
+    "scenario_name": "3岁幼儿学平险与少儿医疗重疾",
     "profile": {
-      "age": 34, "gender": "male", "occupation_class": 2, "has_social_security": true,
-      "annual_budget": 1500, "target_categories": ["life"],
-      "family_role": "家庭支柱", "preferences": ["定期寿险", "定寿高杠杆", "核保宽松"],
-      "query_text": "34岁刚有宝宝想买100万保额的定期寿险，预算1500以内"
+      "age": 3, "gender": "male", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 1600, "target_categories": ["medical", "critical_illness", "accident"],
+      "family_role": "少儿", "preferences": ["学平险", "少儿重疾", "0免赔"],
+      "query_text": "3岁幼儿园小朋友有医保，预算1600配置0免赔医疗、少儿重疾和学平险"
     },
-    "preferred_ids": [43, 44, 46, 47]
+    "expected_eligible_ids": [1, 2, 4, 5, 6, 12],
+    "expected_relevance": {"5": 3, "4": 3, "1": 3, "12": 3, "6": 2, "2": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R27",
-    "scenario_name": "48岁高龄5类职业物流主管",
+    "scenario_name": "24岁应届生学平险上界与职场意外对比",
     "profile": {
-      "age": 48, "gender": "male", "occupation_class": 5, "has_social_security": true,
-      "annual_budget": 4200, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "家庭支柱", "preferences": ["高危职业可保", "保证续保20年"],
-      "query_text": "48岁物流仓库5类职业，预算4200配齐医疗、重疾和意外"
+      "age": 24, "gender": "female", "occupation_class": 2, "has_social_security": true,
+      "annual_budget": 500, "target_categories": ["medical", "accident"],
+      "family_role": "本人", "preferences": ["女性保障", "意外医疗", "百万医疗"],
+      "query_text": "24岁刚毕业女生有社保，预算500元买百万医疗和女性意外险"
     },
-    "preferred_ids": [22, 6, 29, 30, 37, 36]
+    "expected_eligible_ids": [4, 5, 6, 10, 11, 12],
+    "expected_relevance": {"4": 3, "11": 3, "10": 2, "12": 2, "5": 2, "6": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R28",
-    "scenario_name": "55岁养老传承与终身寿险规划",
+    "scenario_name": "18岁成年无社保极简意外与医疗",
     "profile": {
-      "age": 55, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 12000, "target_categories": ["medical", "life"],
-      "family_role": "本人", "preferences": ["终身寿险", "财富传承", "保证续保20年"],
-      "query_text": "55岁阿姨预算12000，想买长期医疗和稳健增值的终身寿险做传承"
+      "age": 18, "gender": "male", "occupation_class": 2, "has_social_security": false,
+      "annual_budget": 600, "target_categories": ["medical", "accident"],
+      "family_role": "本人", "preferences": ["猝死保障", "0免赔", "高性价比"],
+      "query_text": "18岁青年无社保预算600买住院医疗和综合意外"
     },
-    "preferred_ids": [15, 5, 8, 50, 7]
+    "expected_eligible_ids": [4, 5, 6, 10, 11, 12],
+    "expected_relevance": {"4": 3, "10": 3, "6": 2, "5": 2, "12": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R29",
-    "scenario_name": "22岁在校大学生学平险+基础医疗",
+    "scenario_name": "40岁核保宽松三高人群医疗与重疾",
     "profile": {
-      "age": 22, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 800, "target_categories": ["medical", "accident"],
-      "family_role": "本人", "preferences": ["学平险", "高性价比"],
-      "query_text": "22岁在校大学生预算800配一份学生医疗和学平险意外"
+      "age": 40, "gender": "female", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 4200, "target_categories": ["medical", "critical_illness"],
+      "family_role": "本人", "preferences": ["核保宽松", "0免赔", "可附加医疗"],
+      "query_text": "40岁女性有结节和轻微高血压，需要核保宽松点的医疗险和重疾险，预算4200"
     },
-    "preferred_ids": [21, 4, 12, 40]
+    "expected_eligible_ids": [3, 4, 5, 6],
+    "expected_relevance": {"5": 3, "3": 3, "4": 2, "6": 2},
+    "expect_missing_categories": []
   },
   {
     "case_id": "R30",
-    "scenario_name": "44岁频繁出差商务人士",
+    "scenario_name": "59岁医联有盟最高龄与转保医疗匹配",
     "profile": {
-      "age": 44, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 6000, "target_categories": ["medical", "critical_illness", "accident", "life"],
-      "family_role": "家庭支柱", "preferences": ["商旅交通", "保证续保20年", "定寿高杠杆"],
-      "query_text": "44岁经常坐飞机出差，预算6000配航空高额意外、医疗、重疾和定寿"
+      "age": 59, "gender": "female", "occupation_class": 1, "has_social_security": true,
+      "annual_budget": 8500, "target_categories": ["medical", "critical_illness"],
+      "family_role": "父母", "preferences": ["核保宽松", "中老年医疗"],
+      "query_text": "59岁妈妈有医保，预算8500想配置重疾险和长期医疗险"
     },
-    "preferred_ids": [13, 15, 25, 41, 43, 44]
-  },
-  {
-    "case_id": "R31",
-    "scenario_name": "30岁全职妈妈普通保障配置（无单独指定险种）",
-    "profile": {
-      "age": 30, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 3200, "target_categories": [],
-      "family_role": "配偶", "preferences": ["女性保障", "保证续保20年", "家庭保障"],
-      "query_text": "30岁全职妈妈预算3200，帮我推荐合适的基础保险组合"
-    },
-    "preferred_ids": [4, 13, 26, 27, 11, 43]
-  },
-  {
-    "case_id": "R32",
-    "scenario_name": "60岁普通退休人员无目标险种默认配置",
-    "profile": {
-      "age": 60, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 2400, "target_categories": [],
-      "family_role": "父母", "preferences": ["老人意外", "中老年医疗", "核保宽松"],
-      "query_text": "60岁退休老人预算2400怎么配保险"
-    },
-    "preferred_ids": [16, 17, 5, 34, 35]
-  },
-  {
-    "case_id": "R33",
-    "scenario_name": "37岁家族病史高发担心客户（重疾多次赔+防癌医疗）",
-    "profile": {
-      "age": 37, "gender": "male", "occupation_class": 2, "has_social_security": true,
-      "annual_budget": 7500, "target_categories": ["medical", "critical_illness"],
-      "family_role": "本人", "preferences": ["多次赔付", "外购药", "保证续保20年"],
-      "query_text": "37岁预算7500注重癌症特药外购药保障和重疾不分组多次赔付"
-    },
-    "preferred_ids": [15, 4, 31, 25]
-  },
-  {
-    "case_id": "R34",
-    "scenario_name": "56岁高血压母亲医疗+防癌重疾",
-    "profile": {
-      "age": 56, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 4800, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "父母", "preferences": ["三高", "核保宽松", "防癌重疾", "老人意外"],
-      "query_text": "56岁妈妈有高血压，预算4800配宽松核保的医疗、防癌重疾和意外"
-    },
-    "preferred_ids": [16, 17, 32, 34, 35]
-  },
-  {
-    "case_id": "R35",
-    "scenario_name": "33岁4类电工突发疾病与重疾医疗",
-    "profile": {
-      "age": 33, "gender": "male", "occupation_class": 4, "has_social_security": true,
-      "annual_budget": 3800, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "本人", "preferences": ["前症保障", "猝死保障", "保证续保20年"],
-      "query_text": "33岁电工属于4类职业，预算3800配医疗、重疾和含猝死意外险"
-    },
-    "preferred_ids": [4, 15, 2, 30, 39, 40]
-  },
-  {
-    "case_id": "R36",
-    "scenario_name": "45岁家庭共享型意外+医疗",
-    "profile": {
-      "age": 45, "gender": "female", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 2800, "target_categories": ["medical", "accident"],
-      "family_role": "家庭支柱", "preferences": ["家庭保障", "保证续保20年"],
-      "query_text": "45岁预算2800选一款适合全家的医疗险和家庭共享意外险"
-    },
-    "preferred_ids": [13, 4, 42]
-  },
-  {
-    "case_id": "R37",
-    "scenario_name": "20岁年轻打工族5类职业极端紧预算",
-    "profile": {
-      "age": 20, "gender": "male", "occupation_class": 5, "has_social_security": true,
-      "annual_budget": 900, "target_categories": ["medical", "accident"],
-      "family_role": "本人", "preferences": ["高危职业可保", "高性价比"],
-      "query_text": "20岁工厂车间5类职业，预算900先买能保的医疗和意外险"
-    },
-    "preferred_ids": [6, 20, 22, 37, 36]
-  },
-  {
-    "case_id": "R38",
-    "scenario_name": "53岁老龄6类职业重体力劳动者定寿+意外",
-    "profile": {
-      "age": 53, "gender": "male", "occupation_class": 6, "has_social_security": true,
-      "annual_budget": 3500, "target_categories": ["accident", "life"],
-      "family_role": "家庭支柱", "preferences": ["高危职业可保", "定期寿险", "老人意外"],
-      "query_text": "53岁6类职业还想配一份高龄可保的定期寿险和意外险，预算3500"
-    },
-    "preferred_ids": [34, 36, 37, 43, 46, 48]
-  },
-  {
-    "case_id": "R39",
-    "scenario_name": "35岁乙肝/结节人群重疾+定寿+医疗",
-    "profile": {
-      "age": 35, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 5200, "target_categories": ["medical", "critical_illness", "life"],
-      "family_role": "本人", "preferences": ["核保宽松", "转保"],
-      "query_text": "35岁有乙肝小三阳和甲状腺结节，预算5200买核保宽松的医疗、重疾和定寿"
-    },
-    "preferred_ids": [5, 16, 25, 28, 46, 43]
-  },
-  {
-    "case_id": "R40",
-    "scenario_name": "10岁儿童高预算少儿重疾+特需门急诊",
-    "profile": {
-      "age": 10, "gender": "male", "occupation_class": 1, "has_social_security": true,
-      "annual_budget": 4500, "target_categories": ["medical", "critical_illness", "accident"],
-      "family_role": "少儿", "preferences": ["少儿特疾", "特需医疗", "0免赔", "少儿意外"],
-      "query_text": "10岁男孩预算4500，希望医疗能去特需0免赔，重疾带少儿特疾，加少儿意外"
-    },
-    "preferred_ids": [19, 18, 1, 24, 38]
+    "expected_eligible_ids": [3, 5, 6],
+    "expected_relevance": {"5": 3, "3": 3, "6": 2},
+    "expect_missing_categories": []
   }
 ]

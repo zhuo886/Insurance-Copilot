@@ -4,14 +4,38 @@ from typing import Any
 from app.recsys.pricing import PremiumEstimator
 from app.recsys.schemas import ProductCandidate, RecUserProfile
 
-_REF_BLOCK_PATTERN = re.compile(r"\[(ref-\d{3,}(?:\s*[,，]\s*ref-\d{3,})*)\]")
-_REF_ID_PATTERN = re.compile(r"ref-\d{3,}")
+_STANDARD_REF_BLOCK_PATTERN = re.compile(r"\[(ref-\d{3,}(?:\s*[,，]\s*ref-\d{3,})*)\]")
+_STANDARD_REF_ID_PATTERN = re.compile(r"ref-\d{3,}")
+_BRACKET_GROUP_PATTERN = re.compile(r"\[([^\[\]\n]{1,120})\]")
+_PREFIXED_TOKEN_PATTERN = re.compile(r"^(?:ref|source|doc|clause)-[a-z0-9_-]+$", re.IGNORECASE)
+_HEX_HASH_TOKEN_PATTERN = re.compile(r"^(?=.*\d)(?=.*[a-f])[0-9a-f]{4,12}$", re.IGNORECASE)
+_BARE_PREFIXED_TOKEN_PATTERN = re.compile(r"\b(?:ref|source|doc|clause)-[a-z0-9_-]+\b", re.IGNORECASE)
+
 _THINKING_BLOCK_PATTERN = re.compile(r"<thinking>.*?</thinking>", re.DOTALL | re.IGNORECASE)
 _THINKING_UNCLOSED_PREFIX_PATTERN = re.compile(
     r"^<thinking>.*?(?:\n\s*\n|\Z)", re.DOTALL | re.IGNORECASE
 )
 _THINKING_TAG_PATTERN = re.compile(r"</?thinking>", re.IGNORECASE)
-_NO_CLAUSE_PHRASES = ("未查询到", "没有查询到", "暂无完整", "未能查到", "未检索到", "没有查到")
+_NO_CLAUSE_PHRASES = (
+    "未查询到",
+    "没有查询到",
+    "未检索到",
+    "暂无完整",
+    "未能查到",
+    "没有查到",
+    "暂不作条款",
+)
+
+
+def _is_citation_token(token: str) -> bool:
+    """判断单个标记是否属于条款引用编号（含标准 ref-xxx 及各类伪造/十六进制短哈希编号）。"""
+    clean = token.strip()
+    if not clean:
+        return False
+    return bool(
+        _PREFIXED_TOKEN_PATTERN.fullmatch(clean)
+        or _HEX_HASH_TOKEN_PATTERN.fullmatch(clean)
+    )
 
 
 def strip_thinking_tags(text: str) -> str:
@@ -27,49 +51,61 @@ def strip_thinking_tags(text: str) -> str:
 
 
 def extract_cited_refs(text: str) -> list[str]:
-    """提取回复正文中出现的全部 [ref-xxx] 引用编号。"""
+    """提取回复正文中出现的标准格式 [ref-xxx]（3位及以上数字）引用编号。"""
     refs: list[str] = []
-    for block in _REF_BLOCK_PATTERN.findall(text or ""):
-        for ref_id in _REF_ID_PATTERN.findall(block):
+    for block in _STANDARD_REF_BLOCK_PATTERN.findall(text or ""):
+        for ref_id in _STANDARD_REF_ID_PATTERN.findall(block):
             if ref_id not in refs:
                 refs.append(ref_id)
     return refs
 
 
+def extract_all_citation_tokens(text: str) -> list[str]:
+    """提取正文中所有引用形态编号（含标准 [ref-001]、十六进制假编号 [ref-f3b6f8e0] / [d64a1] 等）。"""
+    tokens: list[str] = []
+    raw = text or ""
+    for inner in _BRACKET_GROUP_PATTERN.findall(raw):
+        parts = [p.strip() for p in re.split(r"[,，、/\s]+", inner) if p.strip()]
+        if not parts:
+            continue
+        if any(_is_citation_token(p) for p in parts):
+            for p in parts:
+                if _is_citation_token(p) and p not in tokens:
+                    tokens.append(p)
+    for bare in _BARE_PREFIXED_TOKEN_PATTERN.findall(raw):
+        if bare not in tokens:
+            tokens.append(bare)
+    return tokens
+
+
 def sanitize_citations(
     text: str,
     valid_source_ids: set[str],
-    rag_used: bool,
+    rag_used: bool = False,
 ) -> str:
-    """确定性清洗思维标签与虚假引用编号，并在 RAG 实质回复缺引文时补全真实依据脚标。"""
+    """确定性净化思维标签与虚假/畸形引用编号（绝不在文末强制硬贴脚标凑数）。"""
+    del rag_used
     cleaned = strip_thinking_tags(text)
 
-    def _filter_block(match: re.Match[str]) -> str:
+    def _filter_bracket_group(match: re.Match[str]) -> str:
+        inner = match.group(1)
+        parts = [p.strip() for p in re.split(r"[,，、/\s]+", inner) if p.strip()]
+        if not parts or not any(_is_citation_token(p) for p in parts):
+            return match.group(0)
         kept: list[str] = []
-        for ref_id in _REF_ID_PATTERN.findall(match.group(1)):
-            if ref_id in valid_source_ids and ref_id not in kept:
-                kept.append(ref_id)
+        for p in parts:
+            if p in valid_source_ids and p not in kept:
+                kept.append(p)
         return f"[{', '.join(kept)}]" if kept else ""
 
-    cleaned = _REF_BLOCK_PATTERN.sub(_filter_block, cleaned)
-    cleaned = _REF_ID_PATTERN.sub(
+    cleaned = _BRACKET_GROUP_PATTERN.sub(_filter_bracket_group, cleaned)
+    cleaned = _BARE_PREFIXED_TOKEN_PATTERN.sub(
         lambda m: m.group(0) if m.group(0) in valid_source_ids else "",
         cleaned,
     )
     cleaned = re.sub(r"\[\s*[,，\s]*\]", "", cleaned)
     cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
     cleaned = re.sub(r" +([，。！？；,.!?;])", r"\1", cleaned).strip()
-
-    if (
-        rag_used
-        and valid_source_ids
-        and len(cleaned) >= 15
-        and not extract_cited_refs(cleaned)
-        and not any(phrase in cleaned for phrase in _NO_CLAUSE_PHRASES)
-    ):
-        refs_str = " ".join(f"[{sid}]" for sid in sorted(valid_source_ids)[:3])
-        cleaned = f"{cleaned}\n\n（条款参考依据：{refs_str}）"
-
     return cleaned
 
 
@@ -78,17 +114,24 @@ def verify_citations(
     valid_source_ids: set[str],
     rag_used: bool,
 ) -> list[str]:
-    """确定性引文校验：拦阻虚假引用编号，并提醒 RAG 轮次遗漏引用标记。"""
+    """确定性引文校验：无论是否调用过 RAG，均严厉拦阻一切虚假/畸形引用编号，并提醒 RAG 轮次自主标引。"""
     errors: list[str] = []
-    cited = extract_cited_refs(text)
+    all_tokens = extract_all_citation_tokens(text)
+    invalid = [tok for tok in all_tokens if tok not in valid_source_ids]
 
-    invalid = [ref_id for ref_id in cited if ref_id not in valid_source_ids]
     if invalid:
-        errors.append(
-            f"回答中引用了未检索到的虚假条款编号 {invalid}；合法编号仅限于 {sorted(valid_source_ids)}，"
-            "请修正引用编号或删除无依据陈述。"
-        )
+        if not rag_used:
+            errors.append(
+                f"回答中出现了未检索到的虚假引用编号 {invalid}，严禁凭记忆编造条款编号；"
+                "请先调用 query_product_clause 检索真实条款原文后再作答！"
+            )
+        else:
+            errors.append(
+                f"回答中引用了未检索到的虚假条款编号 {invalid}；合法编号仅限于 {sorted(valid_source_ids)}，"
+                "请修正引用编号或删除无依据陈述。"
+            )
 
+    cited = extract_cited_refs(text)
     stripped = (text or "").strip()
     if (
         rag_used

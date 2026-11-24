@@ -178,7 +178,7 @@ class ChatService:
                 if not namespace and langgraph_node == "route":
                     continue
 
-                should_buffer = rag_buffering and langgraph_node in ("advisor_agent", "agent")
+                should_buffer = rag_buffering and langgraph_node in ("advisor_agent", "claim_agent", "agent")
 
                 if isinstance(payload, dict):
                     evt = payload.get("event")
@@ -214,7 +214,7 @@ class ChatService:
                         continue
                     text = getattr(payload, "text", "") or ""
                     if text:
-                        if langgraph_node == "verify_response":
+                        if langgraph_node in ("verify_response", "verify_claim_response"):
                             # 护栏确定性替换或拦截拒批文案时，丢弃旧草稿缓冲并下发唯一最终回复
                             buffered_chunks = []
                             buffered_msg_id = None

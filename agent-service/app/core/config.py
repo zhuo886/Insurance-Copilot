@@ -16,10 +16,16 @@ class EnvSettings(BaseSettings):
 
 class AppSettings(EnvSettings):
     """应用相关设置"""
-    name: str = Field(alias="APP_NAME")
+    name: str = Field(alias="APP_NAME", default="安心保")
     host: str = Field(alias="APP_HOST", default="127.0.0.1")
     port: int = Field(alias="APP_PORT", default=8001)
     debug: bool = Field(alias="APP_DEBUG", default=True, description="是否开启FastAPI的DEBUG模式")
+    jwt_secret_key: str = Field(
+        alias="JWT_SECRET_KEY",
+        default="insurance-copilot-dev-jwt-secret-change-in-prod",
+    )
+    jwt_access_expire_minutes: int = Field(alias="JWT_ACCESS_EXPIRE_MINUTES", default=120)
+    jwt_refresh_expire_days: int = Field(alias="JWT_REFRESH_EXPIRE_DAYS", default=7)
 
 class DatabaseSettings(EnvSettings):
     """数据库相关设置"""

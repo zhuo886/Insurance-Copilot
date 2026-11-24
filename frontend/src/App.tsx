@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { AdvisorPage } from './AdvisorPage';
+import { logoutUser } from './api';
 import { ApplicationPage } from './ApplicationPage';
 import { clearSession, readSession, saveSession } from './auth';
 import { HomePage } from './HomePage';
@@ -36,6 +37,7 @@ export default function App() {
   }
 
   function logout() {
+    void logoutUser().catch(() => undefined);
     clearSession();
     setSession(null);
     if (path === '/advisor' || path === '/apply') navigate('/');
