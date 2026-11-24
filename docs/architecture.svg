@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1520 920" width="1520" height="920">
   <defs>
     <style>
@@ -62,7 +63,7 @@
   <path d="M 760 167 C 760 200, 1170 200, 1170 252" fill="none" stroke="#1F2937" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-muted)" />
   <path d="M 760 167 C 760 198, 1364 198, 1364 252" fill="none" stroke="#1F2937" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-muted)" />
 
-  <!-- -------- 子工作流 1: RecommendationPlanWorkflow -------- -->
+  <!-- 子工作流 1: RecommendationPlanWorkflow -->
   <rect x="66" y="256" width="456" height="444" rx="10" fill="#EBF5EF" stroke="#C5DDD0" stroke-width="1.4" />
   <text x="294" y="279" class="t-sans card-title">RecommendationPlanWorkflow</text>
   <text x="294" y="297" class="t-sans card-sub">保险组合推荐 · 条款依据问答 · 护栏纠偏 · 审批落库</text>
@@ -139,7 +140,7 @@
   <rect x="379" y="663" width="84" height="26" rx="6" fill="#F3F4F6" stroke="#1F2937" stroke-width="1.4" />
   <text x="421" y="680" class="t-sans node-title">END</text>
 
-  <!-- -------- 子工作流 2: ClaimWorkflow -------- -->
+  <!-- 子工作流 2: ClaimWorkflow -->
   <rect x="536" y="256" width="308" height="444" rx="10" fill="#EBF5EF" stroke="#C5DDD0" stroke-width="1.4" />
   <text x="690" y="279" class="t-sans card-title">ClaimWorkflow</text>
   <text x="690" y="297" class="t-sans card-sub">保单查询 · 理赔指南 · 条款护栏问答</text>
@@ -186,7 +187,7 @@
   <rect x="679" y="635" width="88" height="30" rx="7" fill="#F3F4F6" stroke="#1F2937" stroke-width="1.4" />
   <text x="723" y="654" class="t-sans node-title">END</text>
 
-  <!-- -------- 子工作流 3: ChitchatWorkflow -------- -->
+  <!-- 子工作流 3: ChitchatWorkflow -->
   <rect x="858" y="256" width="212" height="334" rx="10" fill="#EBF5EF" stroke="#C5DDD0" stroke-width="1.4" />
   <text x="964" y="279" class="t-sans card-title">ChitchatWorkflow</text>
   <text x="964" y="297" class="t-sans card-sub">边界内闲聊与服务引导</text>
@@ -208,13 +209,13 @@
   <rect x="918" y="511" width="92" height="32" rx="7" fill="#F3F4F6" stroke="#1F2937" stroke-width="1.4" />
   <text x="964" y="531" class="t-sans node-title">END</text>
 
-  <!-- -------- 子工作流 4: human_handoff -------- -->
+  <!-- 子工作流 4: human_handoff -->
   <rect x="1084" y="256" width="172" height="114" rx="10" fill="#EBF5EF" stroke="#C5DDD0" stroke-width="1.4" />
   <text x="1170" y="286" class="t-sans card-title">human_handoff</text>
   <text x="1170" y="312" class="t-sans card-sub">转人工上下文摘要</text>
   <text x="1170" y="334" class="t-sans node-sub">同步已识别画像与最新诉求</text>
 
-  <!-- -------- 子工作流 5: fallback -------- -->
+  <!-- 子工作流 5: fallback -->
   <rect x="1270" y="256" width="188" height="114" rx="10" fill="#EBF5EF" stroke="#C5DDD0" stroke-width="1.4" />
   <text x="1364" y="286" class="t-sans card-title">fallback</text>
   <text x="1364" y="312" class="t-sans card-sub">无法识别时的兜底引导</text>
