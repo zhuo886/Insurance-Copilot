@@ -140,7 +140,7 @@ hm-insurance/
 ├── .github/workflows/ci.yml       # GitHub Actions：后端 26 项 pytest + 前端 tsc/vite 构建
 ├── LICENSE                        # MIT 开源协议
 ├── deploy/                        # Docker Compose 基础设施（Postgres 16 / Milvus 3.0 / MinIO / Attu）
-│   ├── docker-compose.yml         # 使用官方 minio/minio 与 attu:v2.5.6，强制通过 deploy/.env 注入密钥
+│   ├── docker-compose.yml         # 强制通过 deploy/.env 注入密钥，不保留明文默认密码
 │   ├── .env.example               # 基础设施密码/端口环境变量模板
 │   ├── milvus/                    # Milvus 用户配置模板（user.yaml.example）
 │   └── postgres/init/             # 数据库建表（含 V5/V6/V14 列、订单/理赔/保单/费率表）与演示种子 SQL
@@ -161,7 +161,7 @@ hm-insurance/
 └── frontend/                      # React + TypeScript + Ant Design 前端（登录注册 / 智能顾问 / 试算下单闭环）
 ```
 
-> **仓库脱敏说明**：原始商业保险条款与费率表 PDF（`agent-service/data/raw/`）因体积与版权原因已通过 `git rm --cached` 移出版本库追踪并纳入 `.gitignore`，仅保留脱敏后的结构化 JSON、Markdown 解析产物与标准申请表模板；容器配置已移除全部明文默认密码与 `bitnamilegacy` / `beta` 镜像。
+> **仓库脱敏说明**：原始商业保险条款与费率表 PDF（`agent-service/data/raw/`）因体积与版权原因已通过 `git rm --cached` 移出版本库追踪并纳入 `.gitignore`，仅保留脱敏后的结构化 JSON、Markdown 解析产物与标准申请表模板；容器配置已移除全部明文默认密码，改为通过 `deploy/.env` 注入。
 
 ---
 
