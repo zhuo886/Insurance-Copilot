@@ -209,18 +209,9 @@ export function ApplicationPage({ session, onBack, onSessionExpired }: Applicati
             <span className="brand__mark"><SafetyCertificateOutlined /></span>
             <span>
               <strong>安心保</strong>
-              <small>ACTUARIAL & APPLICATION</small>
+              <small>在线投保</small>
             </span>
           </div>
-          {product ? (
-            <>
-              <span className="advisor-header__divider" aria-hidden="true" />
-              <div className="advisor-header__thread">
-                <AuditOutlined />
-                <span>{CATEGORY_LABELS[product.category] ?? product.category}精算投保</span>
-              </div>
-            </>
-          ) : null}
         </div>
         <div className="advisor-header__right">
           <span className="advisor-user-badge">{session.user.displayName || session.user.username}</span>
@@ -237,12 +228,10 @@ export function ApplicationPage({ session, onBack, onSessionExpired }: Applicati
               ) : (
                 <div>
                   <span className="application-header__eyebrow">
-                    {product ? `${CATEGORY_LABELS[product.category] ?? product.category} · ${product.insurer}` : '当前投保产品'}
+                    {product ? `${CATEGORY_LABELS[product.category] ?? product.category} · ${product.insurer}` : '当前产品'}
                   </span>
                   <h1>{product ? product.name : productId ? `产品 ID：${productId}` : '未选择产品'}</h1>
-                  <p>
-                    {product?.description || '支持基于官方精算费率表在线保费试算、生单预约与方案投保落库。'}
-                  </p>
+                  <p>{product?.description || '支持在线保费试算、预约下单与方案投保。'}</p>
                 </div>
               )}
             </section>
@@ -258,31 +247,29 @@ export function ApplicationPage({ session, onBack, onSessionExpired }: Applicati
                       <VerifiedOutlined />
                     </div>
                     <div>
-                      <span>ELECTRONIC POLICY ISSUED</span>
-                      <h2>投保成功 · 电子保单已生效</h2>
+                      <h2>投保成功 · 保单已生效</h2>
                     </div>
                   </div>
                   <p className="policy-receipt-card__desc">
-                    保单状态已更新为「生效中」并写入用户保单档案表，您可随时回到智能顾问工作台查询该保单明细或获取理赔材料指南。
+                    保单状态已更新为「生效中」，可回到智能顾问查询保单详情及理赔指南。
                   </p>
                   <Descriptions bordered size="small" column={1}>
                     <Descriptions.Item label="生效产品">{product?.name ?? productId ?? '-'}</Descriptions.Item>
                     <Descriptions.Item label="被保人">{session.user.displayName || session.user.username}</Descriptions.Item>
                     <Descriptions.Item label="年缴保费">
-                      {quote ? `¥${quote.annual_premium} / 年（${quote.pricing_mode === 'table' ? '官方精算费率表' : '区间参考估算'}）` : '已按方案配置落库'}
+                      {quote ? `¥${quote.annual_premium} / 年` : '已按方案配置生效'}
                     </Descriptions.Item>
-                    {order ? <Descriptions.Item label="投保订单号">{order.order_number}</Descriptions.Item> : null}
+                    {order ? <Descriptions.Item label="订单号">{order.order_number}</Descriptions.Item> : null}
                   </Descriptions>
                   <div className="policy-receipt-card__actions">
                     <Button type="primary" icon={<ArrowLeftOutlined />} onClick={onBack}>
-                      返回智能顾问查看保单
+                      返回智能顾问
                     </Button>
                   </div>
                 </div>
               ) : (
                 <div className="application-step-body">
                   <div className="step-body-head">
-                    <span className="step-body-head__num">STEP 0{currentStep + 1}</span>
                     <h2>{APPLICATION_STEPS[currentStep].title}</h2>
                   </div>
 
@@ -334,14 +321,14 @@ export function ApplicationPage({ session, onBack, onSessionExpired }: Applicati
                         <div className="quote-receipt-card">
                           <div className="quote-receipt-card__top">
                             <div>
-                              <span>精算报价回执 · {quote.quote_id}</span>
+                              <span>报价单号：{quote.quote_id}</span>
                               <div className="quote-receipt-card__amount">
                                 <strong>¥{quote.annual_premium}</strong>
                                 <small>/ 年</small>
                               </div>
                             </div>
                             <Tag color={quote.pricing_mode === 'table' ? 'green' : 'gold'}>
-                              {quote.pricing_mode === 'table' ? '官方精算费率表' : '区间参考估算'}
+                              {quote.pricing_mode === 'table' ? '官方费率表' : '区间参考'}
                             </Tag>
                           </div>
 
@@ -356,11 +343,11 @@ export function ApplicationPage({ session, onBack, onSessionExpired }: Applicati
                           <div className="quote-receipt-card__footer">
                             {order ? (
                               <Tag color="cyan">
-                                已创建待支付预约单：{order.order_number}（¥{order.total_premium}）
+                                已保存待支付订单：{order.order_number}（¥{order.total_premium}）
                               </Tag>
                             ) : (
                               <Button size="small" loading={creatingOrder} onClick={() => void submitReservationOrder()}>
-                                保存为待支付预约单
+                                保存待支付订单
                               </Button>
                             )}
                           </div>
@@ -369,31 +356,31 @@ export function ApplicationPage({ session, onBack, onSessionExpired }: Applicati
                     </div>
                   ) : currentStep === 0 ? (
                     <div className="disclosure-card">
-                      <strong><AuditOutlined /> 当前产品参考费率说明</strong>
-                      <p>暂未加载到动态试算表单字段，您可参考右侧产品基准起步价并继续确认投保告知流程。</p>
+                      <strong><AuditOutlined /> 费率说明</strong>
+                      <p>当前产品暂无需额外填写参数，可参考右侧基准保费并点击「下一步」继续。</p>
                     </div>
                   ) : currentStep === 1 ? (
                     <div className="disclosure-list">
                       <div className="disclosure-card">
-                        <strong><FileProtectOutlined /> 承保主体与核心条款核对</strong>
+                        <strong><FileProtectOutlined /> 承保与条款确认</strong>
                         <p>
-                          本保障产品由 <strong>{product?.insurer ?? '对应备案保险公司'}</strong> 承保，保障责任、等待期天数、免赔额及免除责任均以正式备案条款为准。
+                          本产品由 <strong>{product?.insurer ?? '对应保险公司'}</strong> 承保，保障责任、等待期与免赔规则以正式保险合同为准。
                         </p>
                       </div>
                       <div className="disclosure-card">
-                        <strong><CheckCircleFilled /> 犹豫期与电子保单送达</strong>
-                        <p>投保生效后将生成电子保单快照，请您在收到合同回执后核对被保人信息及犹豫期权益。</p>
+                        <strong><CheckCircleFilled /> 犹豫期说明</strong>
+                        <p>电子保单生效后请及时核对保单信息，犹豫期内可按合同约定申请无息退保。</p>
                       </div>
                     </div>
                   ) : currentStep === 2 ? (
                     <div className="disclosure-list">
                       <div className="disclosure-card">
-                        <strong><HeartOutlined /> 健康状况如实告知提示</strong>
-                        <p>投保前请确认被保人既往住院记录、慢性病史及体检异常情况均符合产品健康告知要求，避免影响后续理赔认定。</p>
+                        <strong><HeartOutlined /> 健康告知确认</strong>
+                        <p>请确认被保人既往住院记录、慢性病史及体检结论符合产品投保健康要求。</p>
                       </div>
                       <div className="disclosure-card">
-                        <strong><VerifiedOutlined /> 年龄与职业类别合规核验</strong>
-                        <p>请确认被保人当前年龄与真实职业分类在承保允许范围内（部分产品不承保 5–6 类高危职业）。</p>
+                        <strong><VerifiedOutlined /> 年龄与职业确认</strong>
+                        <p>请确认被保人当前年龄及职业分类在产品可承保范围内。</p>
                       </div>
                     </div>
                   ) : currentStep === 3 ? (
@@ -402,14 +389,14 @@ export function ApplicationPage({ session, onBack, onSessionExpired }: Applicati
                       <Descriptions.Item label="承保公司">{product?.insurer ?? '-'}</Descriptions.Item>
                       <Descriptions.Item label="被保人">{session.user.displayName || session.user.username}</Descriptions.Item>
                       <Descriptions.Item label="试算保费">
-                        {quote ? `¥${quote.annual_premium} / 年（${quote.pricing_mode === 'table' ? '官方费率表' : '参考估算'}）` : '未单独试算，沿用方案参考预算'}
+                        {quote ? `¥${quote.annual_premium} / 年（${quote.pricing_mode === 'table' ? '官方费率表' : '参考估算'}）` : '沿用方案参考预算'}
                       </Descriptions.Item>
                       {order ? <Descriptions.Item label="关联订单号">{order.order_number}</Descriptions.Item> : null}
                     </Descriptions>
                   ) : (
                     <div className="disclosure-card">
-                      <strong><PayCircleOutlined /> 确认支付并生成生效保单</strong>
-                      <p>点击下方「支付并生效保单」后，系统将同步更新方案保障状态并落库生成您的有效保单。</p>
+                      <strong><PayCircleOutlined /> 确认支付</strong>
+                      <p>核对以上信息无误后，点击「支付并生效保单」完成投保。</p>
                     </div>
                   )}
 
@@ -417,8 +404,8 @@ export function ApplicationPage({ session, onBack, onSessionExpired }: Applicati
                     <Alert
                       showIcon
                       type="warning"
-                      message="当前仅作保费试算与投保演示"
-                      description="当前入口未携带方案项 ID（plan_id / item_id），可正常完成保费试算与下单，但确认支付更新方案状态需从顾问方案卡片进入。"
+                      message="当前仅作试算与投保演示"
+                      description="未携带方案项 ID（plan_id / item_id），可正常试算与保存订单，确认支付需从顾问方案卡片进入。"
                     />
                   ) : null}
 
@@ -447,27 +434,24 @@ export function ApplicationPage({ session, onBack, onSessionExpired }: Applicati
             </section>
           </div>
 
-          <aside className="application-sidebar" aria-label="精算档案与报价摘要">
+          <aside className="application-sidebar" aria-label="报价摘要">
             <div className="sidebar-summary-card">
               <div className="sidebar-summary-card__head">
-                <div>
-                  <span>ACTUARIAL BRIEF</span>
-                  <strong>精算档案与报价摘要</strong>
-                </div>
+                <strong>报价摘要</strong>
                 <span className="sidebar-status-tag">
-                  {paid ? '已承保' : quote ? '已试算' : '待试算'}
+                  {paid ? '已生效' : quote ? '已试算' : '待试算'}
                 </span>
               </div>
 
               <div className="sidebar-product-meta">
                 <h4>{product?.name ?? (productId ? `产品 ID ${productId}` : '未指定产品')}</h4>
                 <p>
-                  {product ? `${product.insurer} · ${CATEGORY_LABELS[product.category] ?? product.category}` : '正在读取产品详情'}
+                  {product ? `${product.insurer} · ${CATEGORY_LABELS[product.category] ?? product.category}` : '正在加载产品详情'}
                 </p>
               </div>
 
               <div className="sidebar-quote-box">
-                <span>{quote ? '本次精算年缴保费' : '产品基准起步参考价'}</span>
+                <span>{quote ? '本次试算年保费' : '年缴保费参考'}</span>
                 <div className="sidebar-quote-box__price">
                   <strong>
                     {quote
@@ -481,27 +465,27 @@ export function ApplicationPage({ session, onBack, onSessionExpired }: Applicati
                 {quote ? (
                   <div className="sidebar-quote-box__meta">
                     <Tag color={quote.pricing_mode === 'table' ? 'green' : 'gold'}>
-                      {quote.pricing_mode === 'table' ? '官方精算费率表' : '区间参考估算'}
+                      {quote.pricing_mode === 'table' ? '官方费率表' : '区间参考'}
                     </Tag>
                     <small>单号：{quote.quote_id}</small>
                   </div>
                 ) : (
-                  <small className="sidebar-quote-box__hint">填写左侧参数后点击试算获取精准年保费</small>
+                  <small className="sidebar-quote-box__hint">选择左侧参数后点击试算</small>
                 )}
               </div>
 
               {order ? (
                 <div className="sidebar-order-chip">
-                  <span>预约订单编号</span>
+                  <span>预约订单号</span>
                   <strong>{order.order_number}</strong>
                 </div>
               ) : null}
 
               {product?.highlights?.length ? (
                 <div className="sidebar-highlights">
-                  <h5><FileProtectOutlined /> 核心保障摘要</h5>
+                  <h5>保障亮点</h5>
                   <ul>
-                    {product.highlights.slice(0, 4).map((item) => (
+                    {product.highlights.slice(0, 3).map((item) => (
                       <li key={item}>
                         <CheckCircleFilled />
                         <span>{item}</span>

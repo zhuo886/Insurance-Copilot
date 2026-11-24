@@ -76,9 +76,8 @@ export function AuthModal({
         <div className="auth-modal__emblem">
           <SafetyCertificateOutlined />
         </div>
-        <span className="auth-modal__badge">安心保 · 私享身份认证</span>
         <h2>欢迎来到安心保</h2>
-        <p>登录或注册后即可启用智能顾问、方案审批与保单试算服务（演示账号：demo / 123456）</p>
+        <p>登录后即可使用智能顾问与保单服务（演示账号：demo / 123456）</p>
       </div>
 
       <Tabs
